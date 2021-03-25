@@ -13,13 +13,21 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".overview.OverviewFragment">
+        tools:context="com.firstapp.stockmanager.overview.OverviewFragment">
 
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="90dp"
-            android:layout_height="43dp"
-            android:text="TextView" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tickers_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="6dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:listData="@{viewModel.listValues}"
+            tools:listitem="@layout/recyclerview_item" />
 
     </FrameLayout>
 </layout>
