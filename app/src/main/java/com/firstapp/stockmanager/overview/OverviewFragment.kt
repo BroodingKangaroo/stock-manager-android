@@ -1,11 +1,14 @@
 package com.firstapp.stockmanager.overview
 
+import android.app.SearchManager
+import android.content.ComponentName
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.firstapp.stockmanager.R
 import com.firstapp.stockmanager.databinding.FragmentOverviewBinding
 
 class OverviewFragment : Fragment() {
@@ -26,10 +29,20 @@ class OverviewFragment : Fragment() {
         binding.lifecycleOwner = this
 
         binding.viewModel = viewModel
-
-
+        
         binding.tickersList.adapter = TickerListAdapter()
 
         return binding.root
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+
+        val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        (menu.findItem(R.id.search).actionView as SearchView).apply {
+            setSearchableInfo(searchManager.getSearchableInfo(ComponentName(context, "SearchableActivity")))
+        }
+
     }
 }

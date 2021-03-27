@@ -36,10 +36,6 @@ android {
     buildFeatures {
         dataBinding true
     }
-
-    dataBinding{
-        enabled=true
-    }
 }
 
 dependencies {
@@ -67,4 +63,7 @@ dependencies {
 
     // Retrofit with Moshi Converter
     implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
+
+    implementation "androidx.cardview:cardview:1.0.0"
+
 }

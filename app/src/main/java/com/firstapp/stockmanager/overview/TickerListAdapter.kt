@@ -1,6 +1,7 @@
 package com.firstapp.stockmanager.overview
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -13,7 +14,7 @@ class TickerListAdapter :
 
 
     class TickerListViewHolder(
-        private var binding: RecyclerviewItemBinding
+        internal var binding: RecyclerviewItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(tickerData: TickerData) {
             binding.tickerData = tickerData
@@ -21,6 +22,8 @@ class TickerListAdapter :
             // which allows the RecyclerView to make the correct view size measurements
             binding.executePendingBindings()
         }
+
+
     }
 
     companion object DiffCallback : DiffUtil.ItemCallback<TickerData>() {
@@ -45,6 +48,18 @@ class TickerListAdapter :
     override fun onBindViewHolder(holder: TickerListViewHolder, position: Int) {
         val ticker = getItem(position)
         holder.bind(ticker)
+
+        val isExpandedRecycleViewItem: Boolean = getItem(position).expanded
+        holder.binding.expandedItem.visibility =
+            if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
+
+        holder.binding.header.setOnClickListener {
+            ticker.expanded = !ticker.expanded
+            notifyItemChanged(position)
+        }
+
     }
+
+
 }
 

@@ -1,45 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
         <variable
             name="ticker_data"
             type="com.firstapp.stockmanager.network.TickerData" />
+
+        <variable
+            name="onHeaderExpanded"
+            type="android.view.View.OnClickListener" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="3dp"
+        app:cardUseCompatPadding="true"
+        app:contentPadding="1dp">
 
-        <TextView
-            android:id="@+id/symbol"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="@{ticker_data.symbol}"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.105"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.063" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp">
 
-        <TextView
-            android:id="@+id/open"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="@{Double.toString(ticker_data.open)}"
-            app:layout_constraintStart_toEndOf="@id/symbol"
-            app:layout_constraintTop_toTopOf="@id/symbol" />
-        <TextView
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="@{Double.toString(ticker_data.close)}"
-            app:layout_constraintStart_toEndOf="@id/open"
-            app:layout_constraintTop_toTopOf="@id/open" />
+            <TextView
+                android:id="@+id/symbol"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:text="@{ticker_data.symbol}"
+                android:textSize="30sp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/open"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:text="@{Double.toString(ticker_data.open)}" />
 
+            <TextView
+                android:id="@+id/close"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/open"
+                android:layout_alignParentEnd="true"
+                android:text="@{Double.toString(ticker_data.close)}" />
+
+            <View
+                android:id="@+id/group_divider"
+                style="@style/Divider"
+                android:layout_below="@id/close" />
+
+            <RelativeLayout
+                android:id="@+id/expanded_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/group_divider"
+                android:onClick="@{onHeaderExpanded}">
+
+                <TextView
+                    android:id="@+id/expanded_open_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="open" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/expanded_open_text"
+                    android:text="close" />
+
+                <TextView
+                    android:id="@+id/expanded_open"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="@{Double.toString(ticker_data.open)}" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/expanded_open"
+                    android:layout_alignParentEnd="true"
+                    android:text="@{Double.toString(ticker_data.close)}" />
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </layout>

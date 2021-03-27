@@ -17,5 +17,7 @@ data class Pagination(
 data class TickerData(
     @Json(name = "symbol") val symbol: String,
     @Json(name = "open") val open: Double,
-    @Json(name = "close") val close: Double
+    @Json(name = "close") val close: Double,
+
+    var expanded: Boolean = false // control expandability of RecyclerView items
 )

@@ -15,6 +15,10 @@ class OverviewViewModel : ViewModel() {
 
     val listValues: LiveData<List<TickerData>> = _listValues
 
+    private val _listItemExpanded = MutableLiveData<Boolean>()
+    val listItemExpanded: LiveData<Boolean>
+        get() = _listItemExpanded
+
     init {
         getListValues()
     }

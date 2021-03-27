@@ -10,24 +10,27 @@
             type="com.firstapp.stockmanager.overview.OverviewViewModel" />
     </data>
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.firstapp.stockmanager.overview.OverviewFragment">
+        tools:context="com.firstapp.stockmanager.overview.OverviewFragment"
+        android:orientation="vertical"
+        android:padding="4dp">
+
+<!--        <SearchView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:layout_marginBottom="20dp"-->
+<!--            android:layout_marginTop="5dp"/>-->
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tickers_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:padding="6dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:listData="@{viewModel.listValues}"
             tools:listitem="@layout/recyclerview_item" />
 
-    </FrameLayout>
+    </LinearLayout>
 </layout>
