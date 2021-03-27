@@ -1,11 +1,8 @@
 package com.firstapp.stockmanager.overview
 
-import android.app.SearchManager
-import android.content.ComponentName
-import android.content.Context
 import android.os.Bundle
 import android.view.*
-import android.widget.SearchView
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.firstapp.stockmanager.R
@@ -15,34 +12,49 @@ class OverviewFragment : Fragment() {
 
     private val viewModel: OverviewViewModel by viewModels()
 
-    /**
-     * Inflates the layout with Data Binding, sets its lifecycle owner to the OverviewFragment
-     * to enable Data Binding to observe LiveData, and sets up the RecyclerView with an adapter.
-     */
+    private lateinit var binding: FragmentOverviewBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
 
-        val binding = FragmentOverviewBinding.inflate(inflater)
+        binding = FragmentOverviewBinding.inflate(inflater)
 
         binding.lifecycleOwner = this
 
         binding.viewModel = viewModel
-        
+
         binding.tickersList.adapter = TickerListAdapter()
+
+        setHasOptionsMenu(true)
 
         return binding.root
     }
 
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.options_menu, menu)
+
+        viewModel.getListValues(getString(R.string.initial_ticker_list))
+
+        var menuItem = menu.findItem(R.id.search).actionView as SearchView
+
+        menuItem.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query!!.isNotEmpty()) {
+                    viewModel.getListValues(query)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return true
+            }
+        })
+
         super.onCreateOptionsMenu(menu, inflater)
-
-        val searchManager = activity?.getSystemService(Context.SEARCH_SERVICE) as SearchManager
-        (menu.findItem(R.id.search).actionView as SearchView).apply {
-            setSearchableInfo(searchManager.getSearchableInfo(ComponentName(context, "SearchableActivity")))
-        }
-
     }
+
 }

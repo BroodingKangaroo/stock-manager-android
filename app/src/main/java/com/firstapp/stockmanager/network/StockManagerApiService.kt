@@ -21,18 +21,9 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 private const val BASE_URL = "http://api.marketstack.com/v1/"
-
-private const val TOKEN = "de3f54e3342a0a46d718347fbdf90b9f"
-
-enum class APIActions {
-    EOD {
-        override fun calculateUrl() = "eod?access_key=${TOKEN}&symbols=AAP/"
-    };
-
-    abstract fun calculateUrl(): String
-}
 
 private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
@@ -46,8 +37,11 @@ private val retrofit = Retrofit.Builder()
 
 interface StockManagerApiService {
 
-    @GET("eod/latest?access_key=de3f54e3342a0a46d718347fbdf90b9f&symbols=AAPL,MSFT")
-    suspend fun getTickers(): APIResponse
+    @GET("eod/latest")
+    suspend fun getTickers(
+        @Query("access_key") access_key: String,
+        @Query("symbols") symbols: String
+    ): APIResponse
 }
 
 object StockManagerApi {

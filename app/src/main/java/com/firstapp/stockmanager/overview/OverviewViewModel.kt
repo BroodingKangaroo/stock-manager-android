@@ -10,24 +10,21 @@ import com.firstapp.stockmanager.network.TickerData
 import kotlinx.coroutines.launch
 
 class OverviewViewModel : ViewModel() {
+    private val token = "de3f54e3342a0a46d718347fbdf90b9f"
 
     private val _listValues = MutableLiveData<List<TickerData>>()
 
     val listValues: LiveData<List<TickerData>> = _listValues
 
-    private val _listItemExpanded = MutableLiveData<Boolean>()
-    val listItemExpanded: LiveData<Boolean>
-        get() = _listItemExpanded
 
-    init {
-        getListValues()
-    }
+//    init {
+//        getListValues("AAPL,MSFT")
+//    }
 
-    private fun getListValues() {
+    fun getListValues(symbols: String) {
         viewModelScope.launch {
             try {
-                _listValues.value =  StockManagerApi.retrofitService.getTickers().data
-                Log.d("qwe", "Something went wrong")
+                _listValues.value =  StockManagerApi.retrofitService.getTickers(token, symbols).data
             } catch (e: Exception) {
                 _listValues.value = listOf()
                 Log.d("qwe", e.stackTraceToString())
