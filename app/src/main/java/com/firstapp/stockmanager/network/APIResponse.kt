@@ -1,5 +1,7 @@
 package com.firstapp.stockmanager.network
 
+import kotlinx.parcelize.Parcelize
+import android.os.Parcelable
 import com.squareup.moshi.Json
 
 data class APIResponse(
@@ -14,10 +16,11 @@ data class Pagination(
     val total: Int
 )
 
+@Parcelize
 data class TickerData(
-    @Json(name = "symbol") val symbol: String,
+    @Json(name = "symbol") val symbol: String?,
     @Json(name = "open") val open: Double,
     @Json(name = "close") val close: Double,
 
     var expanded: Boolean = false // control expandability of RecyclerView items
-)
+) : Parcelable

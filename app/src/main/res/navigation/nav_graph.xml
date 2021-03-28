@@ -8,18 +8,21 @@
         android:id="@+id/overviewFragment"
         android:name="com.firstapp.stockmanager.overview.OverviewFragment"
         android:label="overview_fragment"
-        tools:layout="@layout/fragment_overview" >
+        tools:layout="@layout/fragment_overview">
         <action
-            android:id="@+id/action_overviewFragment_to_detailFragment2"
-            app:destination="@id/detailFragment2" />
+            android:id="@+id/action_overviewFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
     </fragment>
     <fragment
-        android:id="@+id/detailFragment2"
+        android:id="@+id/detailFragment"
         android:name="com.firstapp.stockmanager.detail.DetailFragment"
         android:label="detail_fragment"
-        tools:layout="@layout/fragment_detail" >
+        tools:layout="@layout/fragment_detail">
+        <argument
+            android:name="selectedTicker"
+            app:argType="com.firstapp.stockmanager.network.TickerData" />
         <action
-            android:id="@+id/action_detailFragment2_to_overviewFragment"
+            android:id="@+id/action_detailFragment_to_overviewFragment"
             app:destination="@id/overviewFragment" />
     </fragment>
 </navigation>
