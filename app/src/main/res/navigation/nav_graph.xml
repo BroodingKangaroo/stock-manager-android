@@ -20,7 +20,7 @@
         tools:layout="@layout/fragment_detail">
         <argument
             android:name="selectedTicker"
-            app:argType="com.firstapp.stockmanager.network.TickerData" />
+            app:argType="com.firstapp.stockmanager.domain.TickerData" />
         <action
             android:id="@+id/action_detailFragment_to_overviewFragment"
             app:destination="@id/overviewFragment" />

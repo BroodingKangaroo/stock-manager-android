@@ -1,33 +1,58 @@
 package com.firstapp.stockmanager.overview
 
-import android.util.Log
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.firstapp.stockmanager.network.StockManagerApi
-import com.firstapp.stockmanager.network.TickerData
+import com.firstapp.stockmanager.database.getDatabase
+import com.firstapp.stockmanager.domain.TickerData
+import com.firstapp.stockmanager.repository.MarketRepository
 import kotlinx.coroutines.launch
+import java.io.IOException
 
-class OverviewViewModel : ViewModel() {
-    private val token = "de3f54e3342a0a46d718347fbdf90b9f"
-
-    private val _listValues = MutableLiveData<List<TickerData>>()
-    val listValues: LiveData<List<TickerData>> = _listValues
+class OverviewViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _navigateToSelectedTicker = MutableLiveData<TickerData?>()
     val navigateToSelectedTicker: LiveData<TickerData?>
         get() = _navigateToSelectedTicker
 
-    fun getListValues(symbols: String) {
+    private val videosRepository = MarketRepository(getDatabase(application))
+    val listValues = videosRepository.tickersData
+
+    private var _eventNetworkError = MutableLiveData<Boolean>(false)
+    val eventNetworkError: LiveData<Boolean>
+        get() = _eventNetworkError
+
+    private var _isNetworkErrorShown = MutableLiveData<Boolean>(false)
+    val isNetworkErrorShown: LiveData<Boolean>
+        get() = _isNetworkErrorShown
+
+    fun onNetworkErrorShown() {
+        _isNetworkErrorShown.value = true
+    }
+
+    fun refreshDataFromRepository(symbols: String) {
         viewModelScope.launch {
             try {
-                _listValues.value =  StockManagerApi.retrofitService.getTickers(token, symbols).data
-            } catch (e: Exception) {
-                _listValues.value = listOf()
-                Log.d("qwe", e.stackTraceToString())
+                videosRepository.refreshTickers(symbols)
+                _eventNetworkError.value = false
+                _isNetworkErrorShown.value = false
+            } catch (networkError: IOException) {
+                if (listValues.value.isNullOrEmpty())
+                    _eventNetworkError.value = true
             }
         }
+    }
+
+    init {
+        val symbols: String =
+            if (videosRepository.tickersData != null && videosRepository.tickersData.value != null) {
+                videosRepository.tickersData.value!!.joinToString(",")
+            } else {
+                "AAPL,MSFT" // TODO("update list of default symbols")
+            }
+        refreshDataFromRepository(symbols)
     }
 
     /**
@@ -44,6 +69,4 @@ class OverviewViewModel : ViewModel() {
     fun displayTickerDetailsComplete() {
         _navigateToSelectedTicker.value = null
     }
-
-
 }

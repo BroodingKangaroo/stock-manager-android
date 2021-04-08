@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.firstapp.stockmanager.databinding.RecyclerviewItemBinding
-import com.firstapp.stockmanager.network.TickerData
+import com.firstapp.stockmanager.domain.TickerData
 
 class TickerListAdapter(private val clickListener: TickerListListener) :
     ListAdapter<TickerData, TickerListAdapter.TickerListViewHolder>(DiffCallback) {
@@ -50,6 +50,9 @@ class TickerListAdapter(private val clickListener: TickerListListener) :
 
         val isExpandedRecycleViewItem: Boolean = getItem(position).expanded
         holder.binding.expandedItem.visibility =
+            if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
+
+        holder.binding.groupDivider.visibility =
             if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
 
         holder.binding.header.setOnClickListener {

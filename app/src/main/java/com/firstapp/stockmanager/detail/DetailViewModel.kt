@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.firstapp.stockmanager.network.TickerData
+import com.firstapp.stockmanager.domain.TickerData
 
 class DetailViewModel(
     tickerData: TickerData,

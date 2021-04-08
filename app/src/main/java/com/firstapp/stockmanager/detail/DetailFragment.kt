@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.firstapp.stockmanager.databinding.FragmentDetailBinding
-import com.firstapp.stockmanager.network.TickerData
+import com.firstapp.stockmanager.domain.TickerData
 
 class DetailFragment : Fragment() {
 

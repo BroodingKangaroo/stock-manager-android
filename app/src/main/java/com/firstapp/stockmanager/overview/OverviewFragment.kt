@@ -2,17 +2,24 @@ package com.firstapp.stockmanager.overview
 
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.firstapp.stockmanager.R
 import com.firstapp.stockmanager.databinding.FragmentOverviewBinding
 
 class OverviewFragment : Fragment() {
 
-    private val viewModel: OverviewViewModel by viewModels()
+    private val viewModel: OverviewViewModel by lazy {
+        val activity = requireNotNull(this.activity) {
+            "You can only access the viewModel after onActivityCreated()"
+        }
+        ViewModelProvider(this, OverViewModelFactory(activity.application))
+            .get(OverviewViewModel::class.java)
+    }
 
     private lateinit var binding: FragmentOverviewBinding
 
@@ -27,22 +34,24 @@ class OverviewFragment : Fragment() {
 
         binding.viewModel = viewModel
 
+
         binding.tickersList.adapter = TickerListAdapter(TickerListListener { tickerData ->
             viewModel.displayTickerDetails(tickerData)
         })
 
-        // Observe the navigateToSelectedProperty LiveData and Navigate when it isn't null
-        // After navigating, call displayPropertyDetailsComplete() so that the ViewModel is ready
-        // for another navigation event.
+
         viewModel.navigateToSelectedTicker.observe(viewLifecycleOwner, Observer {
-            if ( null != it ) {
-                // Must find the NavController from the Fragment
-                this.findNavController().navigate(OverviewFragmentDirections.actionOverviewFragmentToDetailFragment(it))
+            if (null != it) {
+                this.findNavController()
+                    .navigate(OverviewFragmentDirections.actionOverviewFragmentToDetailFragment(it))
                 // Tell the ViewModel we've made the navigate call to prevent multiple navigation
                 viewModel.displayTickerDetailsComplete()
             }
         })
 
+        viewModel.eventNetworkError.observe(this, Observer<Boolean> { isNetworkError ->
+            if (isNetworkError) onNetworkError()
+        })
 
 
         setHasOptionsMenu(true)
@@ -51,10 +60,15 @@ class OverviewFragment : Fragment() {
     }
 
 
+    private fun onNetworkError() {
+        if (!viewModel.isNetworkErrorShown.value!!) {
+            Toast.makeText(activity, "Network Error", Toast.LENGTH_LONG).show()
+            viewModel.onNetworkErrorShown()
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu, menu)
-
-        viewModel.getListValues(getString(R.string.initial_ticker_list))
 
         val menuItem = menu.findItem(R.id.search).actionView as SearchView
 
@@ -62,7 +76,7 @@ class OverviewFragment : Fragment() {
 
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query!!.isNotEmpty()) {
-                    viewModel.getListValues(query)
+                    viewModel.refreshDataFromRepository(query)
                 }
                 return true
             }
