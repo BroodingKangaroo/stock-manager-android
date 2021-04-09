@@ -6,7 +6,7 @@
     app:startDestination="@id/overviewFragment">
     <fragment
         android:id="@+id/overviewFragment"
-        android:name="com.firstapp.stockmanager.overview.OverviewFragment"
+        android:name="com.android.stockmanager.overview.OverviewFragment"
         android:label="overview_fragment"
         tools:layout="@layout/fragment_overview">
         <action
@@ -15,12 +15,12 @@
     </fragment>
     <fragment
         android:id="@+id/detailFragment"
-        android:name="com.firstapp.stockmanager.detail.DetailFragment"
+        android:name="com.android.stockmanager.detail.DetailFragment"
         android:label="detail_fragment"
         tools:layout="@layout/fragment_detail">
         <argument
             android:name="selectedTicker"
-            app:argType="com.firstapp.stockmanager.domain.TickerData" />
+            app:argType="com.android.stockmanager.domain.TickerData" />
         <action
             android:id="@+id/action_detailFragment_to_overviewFragment"
             app:destination="@id/overviewFragment" />

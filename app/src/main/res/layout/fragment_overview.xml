@@ -7,13 +7,13 @@
 
         <variable
             name="viewModel"
-            type="com.firstapp.stockmanager.overview.OverviewViewModel" />
+            type="com.android.stockmanager.overview.OverviewViewModel" />
     </data>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.firstapp.stockmanager.overview.OverviewFragment"
+        tools:context="com.android.stockmanager.overview.OverviewFragment"
         android:orientation="vertical"
         android:padding="4dp">
 

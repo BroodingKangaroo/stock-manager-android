@@ -7,7 +7,7 @@
 
         <variable
             name="ticker_data"
-            type="com.firstapp.stockmanager.domain.TickerData" />
+            type="com.android.stockmanager.domain.TickerData" />
 
         <variable
             name="onHeaderExpanded"
@@ -15,7 +15,7 @@
 
         <variable
             name="clickListener"
-            type="com.firstapp.stockmanager.overview.TickerListListener" />
+            type="com.android.stockmanager.overview.TickerListListener" />
     </data>
 
     <com.google.android.material.card.MaterialCardView
