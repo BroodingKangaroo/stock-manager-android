@@ -6,13 +6,11 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.android.stockmanager.R
 import com.android.stockmanager.databinding.FragmentOverviewBinding
+import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
 import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -36,14 +34,17 @@ class OverviewFragment : Fragment() {
 
 
     class ViewPagerAdapter(
-        fm: FragmentManager,
-        lifecycle: Lifecycle
-    ) : FragmentStateAdapter(fm, lifecycle) {
+        activity: FragmentActivity
+    ) : FragmentStateAdapter(activity) {
 
         override fun getItemCount(): Int = 2
 
         override fun createFragment(position: Int): Fragment {
-            return PopularTickersFragment()
+            return when(position) {
+                0 -> PopularTickersFragment()
+                1 -> FavoriteTickersFragment()
+                else -> PopularTickersFragment()
+            }
         }
     }
 
@@ -59,13 +60,12 @@ class OverviewFragment : Fragment() {
 
         viewModel.eventNetworkError.observe(
             viewLifecycleOwner,
-            Observer<Boolean> { isNetworkError ->
+            { isNetworkError ->
                 if (isNetworkError) onNetworkError(viewModel, activity)
             })
 
-//        binding.authButton.setOnClickListener { launchSignInFlow() }
 
-        val viewPagerAdapter = ViewPagerAdapter(requireActivity().supportFragmentManager, lifecycle)
+        val viewPagerAdapter = ViewPagerAdapter(requireActivity())
         val viewPager = binding.overviewViewPager
         viewPager.adapter = viewPagerAdapter
         val tabLayout: TabLayout = binding.overviewTabLayout
@@ -75,7 +75,6 @@ class OverviewFragment : Fragment() {
                 1 -> tab.text = "Favorite"
             }
         }.attach()
-
 
         setHasOptionsMenu(true)
 
@@ -111,21 +110,4 @@ class OverviewFragment : Fragment() {
             viewModel.onNetworkErrorShown()
         }
     }
-
-//    private fun launchSignInFlow() {
-//        // Give users the option to sign in / register with their email or Google account. If users
-//        // choose to register with their email, they will need to create a password as well.
-//        val providers = arrayListOf(
-//            AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
-//        )
-//
-//        // Create and launch sign-in intent. We listen to the response of this activity with the
-//        // SIGN_IN_RESULT_CODE code.
-//        startActivityForResult(
-//            AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(
-//                providers
-//            ).build(), SIGN_IN_RESULT_CODE
-//        )
-//    }
-
 }
