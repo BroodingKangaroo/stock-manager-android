@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 /**
  * Simple ViewModel factory that provides context to the ViewModel.
  */
-class OverViewModelFactory(private val app: Application) : ViewModelProvider.Factory {
+class OverviewViewModelFactory(private val app: Application) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(OverviewViewModel::class.java)) {

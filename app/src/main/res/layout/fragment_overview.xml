@@ -3,28 +3,53 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-
-        <variable
-            name="viewModel"
-            type="com.android.stockmanager.overview.OverviewViewModel" />
-    </data>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.android.stockmanager.overview.OverviewFragment"
         android:orientation="vertical"
-        android:padding="4dp">
+        android:padding="4dp"
+        tools:context="com.android.stockmanager.overview.OverviewFragment">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/tickers_list"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/overview_tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"/>
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/overview_view_pager"
+            android:layout_marginTop="5dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:listData="@{viewModel.listValues}"
-            tools:listitem="@layout/recyclerview_item" />
+            />
+
+<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:paddingLeft="4dp"-->
+<!--            android:paddingRight="4dp">-->
+
+<!--            <Button-->
+<!--                android:id="@+id/auth_button"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/login_button_text"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/textView"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/unknown_user_greeting"-->
+<!--                android:textSize="20sp"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
+
 
     </LinearLayout>
 </layout>

@@ -47,7 +47,7 @@ class OverviewViewModel(application: Application) : AndroidViewModel(application
 
     init {
         val symbols: String =
-            if (videosRepository.tickersData != null && videosRepository.tickersData.value != null) {
+            if (videosRepository.tickersData.value != null) {
                 videosRepository.tickersData.value!!.joinToString(",")
             } else {
                 "AAPL,MSFT" // TODO("update list of default symbols")
