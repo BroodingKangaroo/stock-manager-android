@@ -27,12 +27,6 @@ class OverviewFragment : Fragment() {
 
     private lateinit var binding: FragmentOverviewBinding
 
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-    }
-
-
     class ViewPagerAdapter(
         activity: FragmentActivity
     ) : FragmentStateAdapter(activity) {
