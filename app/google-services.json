@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "395270378175",
+    "project_id": "stockmanager-130c6",
+    "storage_bucket": "stockmanager-130c6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395270378175:android:580d325dcefd5a536bac0a",
+        "android_client_info": {
+          "package_name": "com.android.stockmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "395270378175-51obcjbviaucnf6ao99fdcj0mh9tql06.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.stockmanager",
+            "certificate_hash": "f19078be7cb7260452d22cdd1e5f4ebec6de4310"
+          }
+        },
+        {
+          "client_id": "395270378175-gfheudcjcmotlbs1aa6sg70cjoacnaf3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABNKgeOfAPrdWeFL2FKwna-7OJjxzR1i4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395270378175-gfheudcjcmotlbs1aa6sg70cjoacnaf3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

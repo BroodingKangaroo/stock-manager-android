@@ -6,6 +6,8 @@
     <string name="more_button">More</string>
     <string name="login_button_text">login</string>
     <string name="unknown_user_greeting">Please login to see favorites</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="login_prompt">Login to see favorites!</string>
+    <string name="login_btn">Login</string>
+    <string name="login_unsuccessful_msg">Login unsuccessful</string>
+    <string name="logout_btn">Logout</string>
 </resources>

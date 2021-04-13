@@ -10,11 +10,18 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.android.stockmanager.R
 import com.android.stockmanager.databinding.FragmentFavoriteTickersBinding
 import com.android.stockmanager.overview.*
+import com.firebase.ui.auth.AuthUI
+import timber.log.Timber
 
 
 class FavoriteTickersFragment : Fragment() {
+
+    companion object {
+        const val TAG = "FavoriteTickersFragment"
+    }
 
     private val viewModel: OverviewViewModel by lazy {
         val activity = requireNotNull(this.activity) {
@@ -29,7 +36,7 @@ class FavoriteTickersFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = FragmentFavoriteTickersBinding.inflate(inflater)
 
@@ -50,11 +57,36 @@ class FavoriteTickersFragment : Fragment() {
             }
         })
 
-        viewModel.eventNetworkError.observe(viewLifecycleOwner, Observer<Boolean> { isNetworkError ->
-            if (isNetworkError) onNetworkError(viewModel, activity)
-        })
+        viewModel.eventNetworkError.observe(
+            viewLifecycleOwner,
+            Observer<Boolean> { isNetworkError ->
+                if (isNetworkError) onNetworkError(viewModel, activity)
+            })
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val navController = findNavController()
+        viewModel.authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+            when (authenticationState) {
+                OverviewViewModel.AuthenticationState.AUTHENTICATED -> {
+                    Timber.i("$TAG Authenticated")
+                    binding.logoutButton.setOnClickListener {
+                        AuthUI.getInstance().signOut(requireContext())
+                    }
+                }
+                // If the user is not logged in, they should not be able to set any preferences,
+                // so navigate them to the login fragment
+                OverviewViewModel.AuthenticationState.UNAUTHENTICATED -> navController.navigate(
+                    R.id.loginFragment
+                )
+                else -> Timber.e(
+                    "$TAG New $authenticationState state that doesn't require any UI change"
+                )
+            }
+        })
+        super.onViewCreated(view, savedInstanceState)
     }
 
     fun onNetworkError(viewModel: OverviewViewModel, activity: FragmentActivity?) {

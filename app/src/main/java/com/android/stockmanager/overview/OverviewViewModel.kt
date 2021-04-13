@@ -1,12 +1,10 @@
 package com.android.stockmanager.overview
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.android.stockmanager.database.getDatabase
 import com.android.stockmanager.domain.TickerData
+import com.android.stockmanager.firebase.FirebaseUserLiveData
 import com.android.stockmanager.repository.MarketRepository
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -27,6 +25,19 @@ class OverviewViewModel(application: Application) : AndroidViewModel(application
     private var _isNetworkErrorShown = MutableLiveData<Boolean>(false)
     val isNetworkErrorShown: LiveData<Boolean>
         get() = _isNetworkErrorShown
+
+    enum class AuthenticationState {
+        AUTHENTICATED, UNAUTHENTICATED, INVALID_AUTHENTICATION
+    }
+
+    val authenticationState = FirebaseUserLiveData().map { user ->
+        if (user != null) {
+            AuthenticationState.AUTHENTICATED
+        } else {
+            AuthenticationState.UNAUTHENTICATED
+        }
+    }
+
 
     fun onNetworkErrorShown() {
         _isNetworkErrorShown.value = true
