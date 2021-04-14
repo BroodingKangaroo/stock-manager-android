@@ -48,6 +48,11 @@ class TickerListAdapter(private val clickListener: TickerListListener) :
         val ticker = getItem(position)
         holder.bind(clickListener, ticker)
 
+        holder.binding.header.setOnClickListener {
+            ticker.expanded = !ticker.expanded
+            notifyItemChanged(position)
+        }
+
         val isExpandedRecycleViewItem: Boolean = getItem(position).expanded
         holder.binding.expandedItem.visibility =
             if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
@@ -55,10 +60,6 @@ class TickerListAdapter(private val clickListener: TickerListListener) :
         holder.binding.groupDivider.visibility =
             if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
 
-        holder.binding.header.setOnClickListener {
-            ticker.expanded = !ticker.expanded
-            notifyItemChanged(position)
-        }
     }
 }
 
