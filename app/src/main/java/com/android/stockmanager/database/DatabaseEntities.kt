@@ -10,7 +10,9 @@ data class DatabaseMarket(
     val symbol: String,
 
     val open: Double,
-    val close: Double
+    val close: Double,
+    val favorite: Boolean = false,
+    val expanded: Boolean = false
 )
 
 fun List<DatabaseMarket>.asDomainModel(): List<TickerData> {
@@ -18,7 +20,9 @@ fun List<DatabaseMarket>.asDomainModel(): List<TickerData> {
         TickerData(
             symbol = it.symbol,
             open = it.open,
-            close = it.close
+            close = it.close,
+            favorite = it.favorite,
+            expanded = it.expanded
         )
     }
 }

@@ -10,4 +10,8 @@
     <string name="login_btn">Login</string>
     <string name="login_unsuccessful_msg">Login unsuccessful</string>
     <string name="logout_btn">Logout</string>
+    <string name="add_favorite">Add to favorites</string>
+    <string name="remove_favorite">Remove from favorites</string>
+    <string name="daily_open_price">open</string>
+    <string name="daily_close_price">close</string>
 </resources>

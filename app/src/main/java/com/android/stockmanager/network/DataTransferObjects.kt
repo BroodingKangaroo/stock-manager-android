@@ -22,9 +22,7 @@ data class Pagination(
 data class NetworkTickerData(
     @Json(name = "symbol") val symbol: String,
     @Json(name = "open") val open: Double,
-    @Json(name = "close") val close: Double,
-
-
+    @Json(name = "close") val close: Double
 ) : Parcelable
 
 //TODO("Add an example of incoming json")
@@ -47,12 +45,13 @@ fun NetworkTickerContainer.asDomainModel(): List<TickerData> {
 /**
  * Convert Network results to database objects
  */
-fun NetworkTickerContainer.asDatabaseModel(): List<DatabaseMarket> {
+fun NetworkTickerContainer.asDatabaseModel(isFavorite: Boolean = false): List<DatabaseMarket> {
     return data.map {
         DatabaseMarket(
             symbol = it.symbol,
             open = it.open,
-            close = it.close
+            close = it.close,
+            favorite = isFavorite
         )
     }
 }

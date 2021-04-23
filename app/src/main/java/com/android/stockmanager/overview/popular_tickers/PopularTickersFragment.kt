@@ -29,7 +29,7 @@ class PopularTickersFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = FragmentPopularTickersBinding.inflate(inflater)
 
@@ -37,9 +37,13 @@ class PopularTickersFragment : Fragment() {
 
         binding.viewModel = viewModel
 
-        binding.tickersList.adapter = TickerListAdapter(TickerListListener { tickerData ->
-            viewModel.displayTickerDetails(tickerData)
-        })
+        binding.tickersList.adapter = TickerListAdapter(
+            TickerListListener { tickerData ->
+                viewModel.displayTickerDetails(tickerData)
+            },
+            this,
+            viewModel
+        )
 
         viewModel.navigateToSelectedTicker.observe(viewLifecycleOwner, Observer {
             if (null != it) {
@@ -50,9 +54,11 @@ class PopularTickersFragment : Fragment() {
             }
         })
 
-        viewModel.eventNetworkError.observe(viewLifecycleOwner, Observer<Boolean> { isNetworkError ->
-            if (isNetworkError) onNetworkError(viewModel, activity)
-        })
+        viewModel.eventNetworkError.observe(
+            viewLifecycleOwner,
+            Observer<Boolean> { isNetworkError ->
+                if (isNetworkError) onNetworkError(viewModel, activity)
+            })
 
         return binding.root
     }

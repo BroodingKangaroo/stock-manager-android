@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.android.stockmanager.R
 import com.android.stockmanager.databinding.FragmentOverviewBinding
 import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
@@ -25,8 +26,6 @@ class OverviewFragment : Fragment() {
             .get(OverviewViewModel::class.java)
     }
 
-    private lateinit var binding: FragmentOverviewBinding
-
     class ViewPagerAdapter(
         activity: FragmentActivity
     ) : FragmentStateAdapter(activity) {
@@ -34,7 +33,7 @@ class OverviewFragment : Fragment() {
         override fun getItemCount(): Int = 2
 
         override fun createFragment(position: Int): Fragment {
-            return when(position) {
+            return when (position) {
                 0 -> PopularTickersFragment()
                 1 -> FavoriteTickersFragment()
                 else -> PopularTickersFragment()
@@ -42,6 +41,9 @@ class OverviewFragment : Fragment() {
         }
     }
 
+    private lateinit var viewPager: ViewPager2
+
+    private lateinit var binding: FragmentOverviewBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,7 +62,7 @@ class OverviewFragment : Fragment() {
 
 
         val viewPagerAdapter = ViewPagerAdapter(requireActivity())
-        val viewPager = binding.overviewViewPager
+        viewPager = binding.overviewViewPager
         viewPager.adapter = viewPagerAdapter
         val tabLayout: TabLayout = binding.overviewTabLayout
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
@@ -75,6 +77,19 @@ class OverviewFragment : Fragment() {
         return binding.root
     }
 
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+//            when (authenticationState) {
+//                // If the user is not logged in, they should not be able to see any favorite tickers,
+//                // so navigate them to the popular tickers fragment
+//                AuthenticationState.UNAUTHENTICATED -> viewPager.currentItem = 0
+//                else -> Timber.e(
+//                    "New $authenticationState state that doesn't require any UI change"
+//                )
+//            }
+//        })
+//    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu, menu)

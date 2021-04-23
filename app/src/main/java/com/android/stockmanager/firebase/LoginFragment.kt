@@ -42,7 +42,6 @@ import timber.log.Timber
 class LoginFragment : Fragment() {
 
     companion object {
-        const val TAG = "LoginFragment"
         const val SIGN_IN_RESULT_CODE = 1001
     }
 
@@ -58,9 +57,8 @@ class LoginFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
-        // Inflate the layout for this fragment
         val binding = DataBindingUtil.inflate<FragmentLoginBinding>(
             inflater, R.layout.fragment_login, container, false
         )
@@ -83,20 +81,21 @@ class LoginFragment : Fragment() {
         // Observe the authentication state so we can know if the user has logged in successfully.
         // If the user has logged in successfully, bring them back to the home screen.
         // If the user did not log in successfully, display an error message.
-        viewModel.authenticationState.observe(
+        authenticationState.observe(
             viewLifecycleOwner,
-            Observer { authenticationState: OverviewViewModel.AuthenticationState ->
+            Observer { authenticationState: AuthenticationState ->
                 when (authenticationState) {
-                    OverviewViewModel.AuthenticationState.AUTHENTICATED -> navController.popBackStack()
-                    OverviewViewModel.AuthenticationState.INVALID_AUTHENTICATION -> Snackbar.make(
+                    AuthenticationState.AUTHENTICATED -> navController.popBackStack()
+                    AuthenticationState.INVALID_AUTHENTICATION -> Snackbar.make(
                         view, requireActivity().getString(R.string.login_unsuccessful_msg),
                         Snackbar.LENGTH_LONG
                     ).show()
                     else -> Timber.e(
-                        "$TAG Authentication state that doesn't require any UI change $authenticationState"
+                        "Authentication state that doesn't require any UI change $authenticationState"
                     )
                 }
             })
+
     }
 
     private fun launchSignInFlow() {
@@ -121,13 +120,13 @@ class LoginFragment : Fragment() {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == Activity.RESULT_OK) {
                 Timber.i(
-                    "$TAG Successfully signed in user ${FirebaseAuth.getInstance().currentUser?.displayName}!"
+                    "Successfully signed in user ${FirebaseAuth.getInstance().currentUser?.displayName}!"
                 )
             } else {
                 // Sign in failed. If response is null the user canceled the sign-in flow using
                 // the back button. Otherwise check response.getError().getErrorCode() and handle
                 // the error.
-                Timber.i("$TAG Sign in unsuccessful ${response?.error?.errorCode}")
+                Timber.i("Sign in unsuccessful ${response?.error?.errorCode}")
             }
         }
     }

@@ -12,6 +12,15 @@ interface MarketDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(tickers: List<DatabaseMarket>)
+
+    @Query("select * from databasemarket where favorite = 1")
+    fun getFavoriteTickers(): LiveData<List<DatabaseMarket>>
+
+    @Update
+    fun updateTicker(ticker: DatabaseMarket)
+
+    @Query("delete from databasemarket")
+    fun removeAllMarketData()
 }
 
 @Database(entities = [DatabaseMarket::class], version = 1, exportSchema = true)

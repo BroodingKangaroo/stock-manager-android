@@ -3,20 +3,32 @@ package com.android.stockmanager.overview
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.android.stockmanager.R
 import com.android.stockmanager.databinding.RecyclerviewItemBinding
 import com.android.stockmanager.domain.TickerData
+import com.android.stockmanager.firebase.AuthenticationState
+import com.android.stockmanager.firebase.authenticationState
 
-class TickerListAdapter(private val clickListener: TickerListListener) :
+class TickerListAdapter(
+    private val clickListener: TickerListListener,
+    private val fragment: Fragment,
+    private val viewModel: OverviewViewModel
+) :
     ListAdapter<TickerData, TickerListAdapter.TickerListViewHolder>(DiffCallback) {
 
 
     class TickerListViewHolder(
         internal var binding: RecyclerviewItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(clickListener: TickerListListener, tickerData: TickerData) {
+        fun bind(
+            clickListener: TickerListListener,
+            tickerData: TickerData
+        ) {
             binding.tickerData = tickerData
             binding.clickListener = clickListener
             // This is important, because it forces the data binding to execute immediately,
@@ -48,18 +60,44 @@ class TickerListAdapter(private val clickListener: TickerListListener) :
         val ticker = getItem(position)
         holder.bind(clickListener, ticker)
 
+        authenticationState.observe(fragment.viewLifecycleOwner, Observer {
+            if (it == AuthenticationState.AUTHENTICATED) {
+                holder.binding.addToFavoritesButton.visibility = View.VISIBLE
+            } else {
+                holder.binding.addToFavoritesButton.visibility = View.GONE
+            }
+        })
+
         holder.binding.header.setOnClickListener {
-            ticker.expanded = !ticker.expanded
+            getItem(position).apply { expanded = !expanded }
             notifyItemChanged(position)
         }
 
-        val isExpandedRecycleViewItem: Boolean = getItem(position).expanded
-        holder.binding.expandedItem.visibility =
-            if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
+        manageFavoriteButton(holder, position)
+    }
 
-        holder.binding.groupDivider.visibility =
-            if (isExpandedRecycleViewItem) View.VISIBLE else View.GONE
+    private fun manageFavoriteButton(holder: TickerListViewHolder, position: Int) {
+        holder.binding.addToFavoritesButton.setOnClickListener {
+            val ticker: TickerData = getItem(position)
+            if (ticker.favorite) {
+                viewModel.removeTickerFromFavorites(ticker)
+            } else {
+                viewModel.addTickerToFavorites(ticker)
+            }
+            ticker.favorite = !ticker.favorite
+            notifyItemChanged(position)
+        }
 
+        holder.binding.addToFavoritesButton.visibility =
+            when (authenticationState.value) {
+                AuthenticationState.AUTHENTICATED -> View.VISIBLE
+                else -> View.GONE
+            }
+
+        holder.binding.addToFavoritesButton.text = when (getItem(position).favorite) {
+            true -> holder.itemView.context.getString(R.string.remove_favorite)
+            false -> holder.itemView.context.getString(R.string.add_favorite)
+        }
     }
 }
 

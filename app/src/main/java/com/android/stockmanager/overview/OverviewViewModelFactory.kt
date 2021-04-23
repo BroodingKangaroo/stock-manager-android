@@ -7,11 +7,14 @@ import androidx.lifecycle.ViewModelProvider
 /**
  * Simple ViewModel factory that provides context to the ViewModel.
  */
-class OverviewViewModelFactory(private val app: Application) : ViewModelProvider.Factory {
+class OverviewViewModelFactory(
+    private val app: Application,
+    private val favoriteFragmentModel: Boolean = false
+) : ViewModelProvider.Factory {
     @Suppress("unchecked_cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(OverviewViewModel::class.java)) {
-            return OverviewViewModel(app) as T
+            return OverviewViewModel(app, favoriteFragmentModel) as T
         }
         throw IllegalArgumentException("Unable to construct ViewModel")
     }

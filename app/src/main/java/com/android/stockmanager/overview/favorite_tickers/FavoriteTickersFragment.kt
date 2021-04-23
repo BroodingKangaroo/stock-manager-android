@@ -12,6 +12,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.android.stockmanager.R
 import com.android.stockmanager.databinding.FragmentFavoriteTickersBinding
+import com.android.stockmanager.firebase.AuthenticationState
+import com.android.stockmanager.firebase.authenticationState
+import com.android.stockmanager.firebase.userAuthStateLiveData
+import com.android.stockmanager.firebase.userData
 import com.android.stockmanager.overview.*
 import com.firebase.ui.auth.AuthUI
 import timber.log.Timber
@@ -19,15 +23,14 @@ import timber.log.Timber
 
 class FavoriteTickersFragment : Fragment() {
 
-    companion object {
-        const val TAG = "FavoriteTickersFragment"
-    }
-
     private val viewModel: OverviewViewModel by lazy {
         val activity = requireNotNull(this.activity) {
             "You can only access the viewModel after onActivityCreated()"
         }
-        ViewModelProvider(this, OverviewViewModelFactory(activity.application))
+        ViewModelProvider(
+            this,
+            OverviewViewModelFactory(activity.application, favoriteFragmentModel = true)
+        )
             .get(OverviewViewModel::class.java)
     }
 
@@ -37,16 +40,26 @@ class FavoriteTickersFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
+
         binding = FragmentFavoriteTickersBinding.inflate(inflater)
 
         binding.lifecycleOwner = this
 
         binding.viewModel = viewModel
 
-        binding.tickersList.adapter = TickerListAdapter(TickerListListener { tickerData ->
-            viewModel.displayTickerDetails(tickerData)
-        })
+        binding.tickersList.adapter = TickerListAdapter(
+            TickerListListener { tickerData ->
+                viewModel.displayTickerDetails(tickerData)
+            },
+            this,
+            viewModel
+        )
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val navController = findNavController()
 
         viewModel.navigateToSelectedTicker.observe(viewLifecycleOwner, Observer {
             if (null != it) {
@@ -63,30 +76,47 @@ class FavoriteTickersFragment : Fragment() {
                 if (isNetworkError) onNetworkError(viewModel, activity)
             })
 
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val navController = findNavController()
-        viewModel.authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
             when (authenticationState) {
-                OverviewViewModel.AuthenticationState.AUTHENTICATED -> {
-                    Timber.i("$TAG Authenticated")
-                    binding.logoutButton.setOnClickListener {
-                        AuthUI.getInstance().signOut(requireContext())
-                    }
+                AuthenticationState.AUTHENTICATED -> {
+                    Timber.i("Authenticated")
+                    viewModel.setFirebaseUser()
                 }
-                // If the user is not logged in, they should not be able to set any preferences,
+                // If the user is not logged in, they should not be able to set any favorite tickers,
                 // so navigate them to the login fragment
-                OverviewViewModel.AuthenticationState.UNAUTHENTICATED -> navController.navigate(
+                AuthenticationState.UNAUTHENTICATED -> navController.navigate(
                     R.id.loginFragment
                 )
                 else -> Timber.e(
-                    "$TAG New $authenticationState state that doesn't require any UI change"
+                    "New $authenticationState state that doesn't require any UI change"
                 )
             }
         })
+
+        userData.value!!.favoriteTickers.observe(viewLifecycleOwner, Observer { favoriteTickers ->
+            if(!favoriteTickers.isNullOrEmpty()) {
+                viewModel.refreshDataFromRepository(favoriteTickers.joinToString(","), isFavorite = true)
+            }
+        })
+
+        binding.logoutButton.setOnClickListener {
+            AuthUI.getInstance().signOut(requireContext())
+            userAuthStateLiveData.firebaseAuth.signOut()
+        }
+
         super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onResume() {
+        val navController = findNavController()
+        // Navigate unauthenticated users to login fragment even after pressing back button on login fragment
+        // and returning back to favorite fragment
+        when(authenticationState.value) {
+            AuthenticationState.UNAUTHENTICATED -> navController.navigate(R.id.loginFragment)
+            AuthenticationState.INVALID_AUTHENTICATION -> navController.navigate(R.id.loginFragment)
+            else -> {}
+        }
+        super.onResume()
     }
 
     fun onNetworkError(viewModel: OverviewViewModel, activity: FragmentActivity?) {

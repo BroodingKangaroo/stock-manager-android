@@ -1,22 +1,32 @@
 package com.android.stockmanager.overview
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.android.stockmanager.database.getDatabase
 import com.android.stockmanager.domain.TickerData
-import com.android.stockmanager.firebase.FirebaseUserLiveData
+import com.android.stockmanager.firebase.UserData
+import com.android.stockmanager.firebase.userAuthStateLiveData
+import com.android.stockmanager.firebase.userData
 import com.android.stockmanager.repository.MarketRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class OverviewViewModel(application: Application) : AndroidViewModel(application) {
+class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean = false) :
+    AndroidViewModel(application) {
 
     private val _navigateToSelectedTicker = MutableLiveData<TickerData?>()
     val navigateToSelectedTicker: LiveData<TickerData?>
         get() = _navigateToSelectedTicker
 
-    private val videosRepository = MarketRepository(getDatabase(application))
-    val listValues = videosRepository.tickersData
+    private val marketRepository = MarketRepository(getDatabase(application))
+    val listValues = if (favoriteFragmentModel)
+        marketRepository.favoriteTickersData
+    else
+        marketRepository.tickersData
 
     private var _eventNetworkError = MutableLiveData<Boolean>(false)
     val eventNetworkError: LiveData<Boolean>
@@ -26,27 +36,15 @@ class OverviewViewModel(application: Application) : AndroidViewModel(application
     val isNetworkErrorShown: LiveData<Boolean>
         get() = _isNetworkErrorShown
 
-    enum class AuthenticationState {
-        AUTHENTICATED, UNAUTHENTICATED, INVALID_AUTHENTICATION
-    }
-
-    val authenticationState = FirebaseUserLiveData().map { user ->
-        if (user != null) {
-            AuthenticationState.AUTHENTICATED
-        } else {
-            AuthenticationState.UNAUTHENTICATED
-        }
-    }
-
 
     fun onNetworkErrorShown() {
         _isNetworkErrorShown.value = true
     }
 
-    fun refreshDataFromRepository(symbols: String) {
+    fun refreshDataFromRepository(symbols: String, isFavorite: Boolean = false) {
         viewModelScope.launch {
             try {
-                videosRepository.refreshTickers(symbols)
+                marketRepository.refreshTickers(symbols, isFavorite)
                 _eventNetworkError.value = false
                 _isNetworkErrorShown.value = false
             } catch (networkError: IOException) {
@@ -56,14 +54,44 @@ class OverviewViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    private suspend fun refreshDataFromRepositoryWithoutScope(symbols: String, isFavorite: Boolean = false) {
+        try {
+            marketRepository.refreshTickers(symbols, isFavorite)
+            _eventNetworkError.value = false
+            _isNetworkErrorShown.value = false
+        } catch (networkError: IOException) {
+            if (listValues.value.isNullOrEmpty())
+                _eventNetworkError.value = true
+        }
+    }
+
+    private suspend fun updateDataFromRepository(
+        tickerData: TickerData,
+        isFavorite: Boolean = false
+    ) {
+        try {
+            marketRepository.updateTicker(tickerData, isFavorite)
+            _eventNetworkError.value = false
+            _isNetworkErrorShown.value = false
+        } catch (networkError: IOException) {
+            if (listValues.value.isNullOrEmpty())
+                _eventNetworkError.value = true
+        }
+    }
+
     init {
-        val symbols: String =
-            if (videosRepository.tickersData.value != null) {
-                videosRepository.tickersData.value!!.joinToString(",")
-            } else {
-                "AAPL,MSFT" // TODO("update list of default symbols")
-            }
-        refreshDataFromRepository(symbols)
+
+        userData.value = UserData(MutableLiveData(""), MutableLiveData(mutableListOf()))
+
+        if (!favoriteFragmentModel) {
+            val popularTickers: String =
+                if (marketRepository.tickersData.value != null) {
+                    marketRepository.tickersData.value!!.joinToString(",")
+                } else {
+                    "AAPL,MSFT" // TODO("update list of default symbols from database of popular tickers")
+                }
+            refreshDataFromRepository(popularTickers)
+        }
     }
 
     /**
@@ -74,10 +102,36 @@ class OverviewViewModel(application: Application) : AndroidViewModel(application
         _navigateToSelectedTicker.value = tickerData
     }
 
-    /**
-     * After the navigation has taken place, make sure _navigateToSelectedTicker is set to null
-     */
     fun displayTickerDetailsComplete() {
         _navigateToSelectedTicker.value = null
     }
+
+    fun setFirebaseUser() {
+        userData.value = UserData(
+            MutableLiveData<String>(userAuthStateLiveData.getUserId()),
+            MutableLiveData<MutableList<String>>(mutableListOf())
+        )
+        viewModelScope.launch {
+            marketRepository.clearDatabase()
+            async {userData.value!!.setUser()}.await()
+            val userFavoriteTickers: String = userData.value!!.tickersToString()
+            if (userFavoriteTickers.isNotEmpty())
+                refreshDataFromRepositoryWithoutScope(userFavoriteTickers, isFavorite = true)
+        }
+    }
+
+    fun addTickerToFavorites(tickerData: TickerData) {
+        viewModelScope.launch {
+            userData.value!!.addTicker(tickerData.symbol)
+            updateDataFromRepository(tickerData, isFavorite = true)
+        }
+    }
+
+    fun removeTickerFromFavorites(ticker: TickerData) {
+        viewModelScope.launch {
+            userData.value!!.removeTicker(ticker.symbol)
+            updateDataFromRepository(ticker, isFavorite = false)
+        }
+    }
+
 }
