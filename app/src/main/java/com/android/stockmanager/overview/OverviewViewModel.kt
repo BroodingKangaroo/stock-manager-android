@@ -9,7 +9,6 @@ import com.android.stockmanager.database.getDatabase
 import com.android.stockmanager.domain.TickerData
 import com.android.stockmanager.firebase.UserData
 import com.android.stockmanager.firebase.userAuthStateLiveData
-import com.android.stockmanager.firebase.userData
 import com.android.stockmanager.repository.MarketRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -81,7 +80,7 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
 
     init {
 
-        userData.value = UserData(MutableLiveData(""), MutableLiveData(mutableListOf()))
+        UserData.init("", mutableListOf())
 
         if (!favoriteFragmentModel) {
             val popularTickers: String =
@@ -107,14 +106,14 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
     }
 
     fun setFirebaseUser() {
-        userData.value = UserData(
-            MutableLiveData<String>(userAuthStateLiveData.getUserId()),
-            MutableLiveData<MutableList<String>>(mutableListOf())
+        UserData.init(
+            userAuthStateLiveData.getUserId(),
+            mutableListOf()
         )
         viewModelScope.launch {
             marketRepository.clearDatabase()
-            async {userData.value!!.setUser()}.await()
-            val userFavoriteTickers: String = userData.value!!.tickersToString()
+            async {UserData.setUser()}.await()
+            val userFavoriteTickers: String = UserData.tickersToString()
             if (userFavoriteTickers.isNotEmpty())
                 refreshDataFromRepositoryWithoutScope(userFavoriteTickers, isFavorite = true)
         }
@@ -122,14 +121,14 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
 
     fun addTickerToFavorites(tickerData: TickerData) {
         viewModelScope.launch {
-            userData.value!!.addTicker(tickerData.symbol)
+            UserData.addTicker(tickerData.symbol)
             updateDataFromRepository(tickerData, isFavorite = true)
         }
     }
 
     fun removeTickerFromFavorites(ticker: TickerData) {
         viewModelScope.launch {
-            userData.value!!.removeTicker(ticker.symbol)
+            UserData.removeTicker(ticker.symbol)
             updateDataFromRepository(ticker, isFavorite = false)
         }
     }

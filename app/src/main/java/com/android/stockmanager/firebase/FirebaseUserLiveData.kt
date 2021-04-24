@@ -52,12 +52,16 @@ var authenticationState: LiveData<AuthenticationState> = userAuthStateLiveData.m
 }
 
 
-//TODO("make `UserData` an object")
+object UserData {
 
-class UserData(
-    private val userId: MutableLiveData<String>,
-    val favoriteTickers: MutableLiveData<MutableList<String>>
-) {
+    val favoriteTickers: MutableLiveData<MutableList<String>> = MutableLiveData(mutableListOf())
+    private val userId: MutableLiveData<String> = MutableLiveData("")
+
+    fun init(_userId: String, _favoriteTickers: MutableList<String>) {
+        favoriteTickers.value = _favoriteTickers
+        userId.value = _userId
+    }
+
     suspend fun addTicker(symbol: String) {
         favoriteTickers.value!!.add(symbol)
 
@@ -129,5 +133,3 @@ class UserData(
         }
     }
 }
-
-val userData: MutableLiveData<UserData> = MutableLiveData<UserData>()
