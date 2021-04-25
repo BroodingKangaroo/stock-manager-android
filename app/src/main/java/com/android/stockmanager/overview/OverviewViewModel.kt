@@ -53,17 +53,6 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
         }
     }
 
-    private suspend fun refreshDataFromRepositoryWithoutScope(symbols: String, isFavorite: Boolean = false) {
-        try {
-            marketRepository.refreshTickers(symbols, isFavorite)
-            _eventNetworkError.value = false
-            _isNetworkErrorShown.value = false
-        } catch (networkError: IOException) {
-            if (listValues.value.isNullOrEmpty())
-                _eventNetworkError.value = true
-        }
-    }
-
     private suspend fun updateDataFromRepository(
         tickerData: TickerData,
         isFavorite: Boolean = false
@@ -112,10 +101,11 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
         )
         viewModelScope.launch {
             marketRepository.clearDatabase()
-            async {UserData.setUser()}.await()
+            async { UserData.fetchUser() }.await()
             val userFavoriteTickers: String = UserData.tickersToString()
-            if (userFavoriteTickers.isNotEmpty())
-                refreshDataFromRepositoryWithoutScope(userFavoriteTickers, isFavorite = true)
+            if (userFavoriteTickers.isNotEmpty()) {
+                refreshDataFromRepository(userFavoriteTickers, isFavorite = true)
+            }
         }
     }
 

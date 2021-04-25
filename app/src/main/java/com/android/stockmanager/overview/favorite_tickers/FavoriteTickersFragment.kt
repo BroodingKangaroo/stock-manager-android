@@ -13,7 +13,6 @@ import androidx.navigation.fragment.findNavController
 import com.android.stockmanager.R
 import com.android.stockmanager.databinding.FragmentFavoriteTickersBinding
 import com.android.stockmanager.firebase.AuthenticationState
-import com.android.stockmanager.firebase.UserData
 import com.android.stockmanager.firebase.authenticationState
 import com.android.stockmanager.firebase.userAuthStateLiveData
 import com.android.stockmanager.overview.*
@@ -93,12 +92,6 @@ class FavoriteTickersFragment : Fragment() {
             }
         })
 
-        UserData.favoriteTickers.observe(viewLifecycleOwner, Observer { favoriteTickers ->
-            if(!favoriteTickers.isNullOrEmpty()) {
-                viewModel.refreshDataFromRepository(favoriteTickers.joinToString(","), isFavorite = true)
-            }
-        })
-
         binding.logoutButton.setOnClickListener {
             AuthUI.getInstance().signOut(requireContext())
             userAuthStateLiveData.firebaseAuth.signOut()
@@ -111,11 +104,12 @@ class FavoriteTickersFragment : Fragment() {
         val navController = findNavController()
         // Navigate unauthenticated users to login fragment even after pressing back button on login fragment
         // and returning back to favorite fragment
-        when(authenticationState.value) {
+        when (authenticationState.value) {
             AuthenticationState.UNAUTHENTICATED -> navController.navigate(R.id.loginFragment)
             AuthenticationState.INVALID_AUTHENTICATION -> navController.navigate(R.id.loginFragment)
             else -> {}
         }
+        binding.tickersList.adapter!!.notifyDataSetChanged()
         super.onResume()
     }
 

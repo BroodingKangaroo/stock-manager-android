@@ -6,15 +6,19 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.android.stockmanager.R
 import com.android.stockmanager.databinding.FragmentOverviewBinding
+import com.android.stockmanager.firebase.AuthenticationState
+import com.android.stockmanager.firebase.authenticationState
 import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
 import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import timber.log.Timber
 
 class OverviewFragment : Fragment() {
 
@@ -77,19 +81,19 @@ class OverviewFragment : Fragment() {
         return binding.root
     }
 
-//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-//        super.onViewCreated(view, savedInstanceState)
-//        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
-//            when (authenticationState) {
-//                // If the user is not logged in, they should not be able to see any favorite tickers,
-//                // so navigate them to the popular tickers fragment
-//                AuthenticationState.UNAUTHENTICATED -> viewPager.currentItem = 0
-//                else -> Timber.e(
-//                    "New $authenticationState state that doesn't require any UI change"
-//                )
-//            }
-//        })
-//    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+            when (authenticationState) {
+                // If the user is not logged in, they should not be able to see any favorite tickers,
+                // so navigate them to the popular tickers fragment
+                AuthenticationState.UNAUTHENTICATED -> viewPager.currentItem = 0
+                else -> Timber.e(
+                    "New $authenticationState state that doesn't require any UI change"
+                )
+            }
+        })
+    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu, menu)

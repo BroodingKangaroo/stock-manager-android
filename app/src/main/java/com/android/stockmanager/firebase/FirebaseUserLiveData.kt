@@ -7,7 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -94,42 +94,23 @@ object UserData {
         return favoriteTickers.value!!.joinToString(",")
     }
 
-    suspend fun setUser() = coroutineScope {
-        val userExists = async { readUser() }
-        if (!userExists.await()) {
-            createUser()
-        }
-    }
+    suspend fun fetchUser() {
+        val db = Firebase.firestore
+        val docRef = db.collection("users").document(userId.value!!)
 
-    private suspend fun createUser() {
-        withContext(Dispatchers.IO) {
-            val db = Firebase.firestore
-            db.collection("users").document(userId.value!!)
-        }
-    }
-
-    private suspend fun readUser(): Boolean {
-        return withContext(Dispatchers.IO) {
-            val db = Firebase.firestore
-            val docRef = db.collection("users").document(userId.value!!)
-
-            var userExists = false
-            docRef.get()
-                .addOnSuccessListener { document ->
-                    try {
-                        if (document != null) userExists = true
-                        if (userExists && document["tickers"] != null) {
-                            favoriteTickers.value?.addAll(document["tickers"] as MutableList<String>)
-                            Timber.i("Document of ${userId.value} was successfully read")
-                        }
-                    } catch (e: Exception) {
-                        Timber.e("Error reading document of ${userId.value}: $e")
+        docRef.get()
+            .addOnSuccessListener { document ->
+                try {
+                    if (document != null && document["tickers"] != null) {
+                        favoriteTickers.value = document["tickers"] as MutableList<String>
+                        Timber.i("Document of ${userId.value} was successfully read")
                     }
-                }
-                .addOnFailureListener { e ->
+                } catch (e: Exception) {
                     Timber.e("Error reading document of ${userId.value}: $e")
-                }.await()
-            return@withContext userExists
-        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Timber.e("Error reading document of ${userId.value}: $e")
+            }.await()
     }
 }

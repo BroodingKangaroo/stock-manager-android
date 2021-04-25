@@ -57,20 +57,15 @@ class TickerListAdapter(
     }
 
     override fun onBindViewHolder(holder: TickerListViewHolder, position: Int) {
-        val ticker = getItem(position)
-        holder.bind(clickListener, ticker)
-
-        authenticationState.observe(fragment.viewLifecycleOwner, Observer {
-            if (it == AuthenticationState.AUTHENTICATED) {
-                holder.binding.addToFavoritesButton.visibility = View.VISIBLE
-            } else {
-                holder.binding.addToFavoritesButton.visibility = View.GONE
-            }
-        })
+        holder.bind(clickListener, getItem(position))
 
         holder.binding.header.setOnClickListener {
-            getItem(position).apply { expanded = !expanded }
-            notifyItemChanged(position)
+            try {
+                getItem(position).apply { expanded = !expanded }
+                notifyItemChanged(position)
+            } catch (e: IndexOutOfBoundsException) {
+                notifyDataSetChanged()
+            }
         }
 
         manageFavoriteButton(holder, position)
@@ -93,6 +88,14 @@ class TickerListAdapter(
                 AuthenticationState.AUTHENTICATED -> View.VISIBLE
                 else -> View.GONE
             }
+
+        authenticationState.observe(fragment.viewLifecycleOwner, Observer {
+            if (it == AuthenticationState.AUTHENTICATED) {
+                holder.binding.addToFavoritesButton.visibility = View.VISIBLE
+            } else {
+                holder.binding.addToFavoritesButton.visibility = View.GONE
+            }
+        })
 
         holder.binding.addToFavoritesButton.text = when (getItem(position).favorite) {
             true -> holder.itemView.context.getString(R.string.remove_favorite)
