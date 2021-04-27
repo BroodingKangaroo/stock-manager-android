@@ -7,10 +7,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.android.stockmanager.R
+import com.android.stockmanager.StockManagerApplication
 import com.android.stockmanager.databinding.FragmentFavoriteTickersBinding
 import com.android.stockmanager.firebase.AuthenticationState
 import com.android.stockmanager.firebase.authenticationState
@@ -22,15 +23,11 @@ import timber.log.Timber
 
 class FavoriteTickersFragment : Fragment() {
 
-    private val viewModel: OverviewViewModel by lazy {
-        val activity = requireNotNull(this.activity) {
-            "You can only access the viewModel after onActivityCreated()"
-        }
-        ViewModelProvider(
-            this,
-            OverviewViewModelFactory(activity.application, favoriteFragmentModel = true)
+    private val viewModel: OverviewViewModel by viewModels {
+        OverviewViewModelFactory(
+            (requireNotNull(this.activity).application as StockManagerApplication).repository,
+            favoriteFragmentModel = true
         )
-            .get(OverviewViewModel::class.java)
     }
 
     private lateinit var binding: FragmentFavoriteTickersBinding
@@ -103,7 +100,7 @@ class FavoriteTickersFragment : Fragment() {
     override fun onResume() {
         val navController = findNavController()
         // Navigate unauthenticated users to login fragment even after pressing back button on login fragment
-        // and returning back to favorite fragment
+        // and returning back to the favorite fragment
         when (authenticationState.value) {
             AuthenticationState.UNAUTHENTICATED -> navController.navigate(R.id.loginFragment)
             AuthenticationState.INVALID_AUTHENTICATION -> navController.navigate(R.id.loginFragment)

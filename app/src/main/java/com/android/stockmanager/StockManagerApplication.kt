@@ -3,6 +3,8 @@ package com.android.stockmanager
 import android.app.Application
 import android.os.Build
 import androidx.work.*
+import com.android.stockmanager.database.MarketRoomDatabase
+import com.android.stockmanager.repository.MarketRepository
 import com.android.stockmanager.work.RefreshDataWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +19,11 @@ import java.util.concurrent.TimeUnit
 class StockManagerApplication : Application() {
 
     private val applicationScope = CoroutineScope(Dispatchers.Default)
+
+    // Using by lazy so the database and the repository are only created when they're needed
+    // rather than when the application starts
+    private val database by lazy { MarketRoomDatabase.getDatabase(this) }
+    val repository by lazy { MarketRepository(database.marketDao()) }
 
     override fun onCreate() {
         super.onCreate()

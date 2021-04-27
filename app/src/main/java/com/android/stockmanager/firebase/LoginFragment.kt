@@ -25,11 +25,12 @@ import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.android.stockmanager.R
+import com.android.stockmanager.StockManagerApplication
 import com.android.stockmanager.databinding.FragmentLoginBinding
 import com.android.stockmanager.overview.OverviewViewModel
 import com.android.stockmanager.overview.OverviewViewModelFactory
@@ -45,12 +46,8 @@ class LoginFragment : Fragment() {
         const val SIGN_IN_RESULT_CODE = 1001
     }
 
-    private val viewModel: OverviewViewModel by lazy {
-        val activity = requireNotNull(this.activity) {
-            "You can only access the viewModel after onActivityCreated()"
-        }
-        ViewModelProvider(this, OverviewViewModelFactory(activity.application))
-            .get(OverviewViewModel::class.java)
+    private val viewModel: OverviewViewModel by viewModels {
+        OverviewViewModelFactory((requireNotNull(this.activity).application as StockManagerApplication).repository)
     }
 
     private lateinit var navController: NavController

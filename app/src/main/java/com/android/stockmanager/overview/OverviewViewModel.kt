@@ -1,31 +1,32 @@
 package com.android.stockmanager.overview
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.stockmanager.database.getDatabase
 import com.android.stockmanager.domain.TickerData
-import com.android.stockmanager.firebase.UserData
-import com.android.stockmanager.firebase.userAuthStateLiveData
+import com.android.stockmanager.domain.TickerPopularity
+import com.android.stockmanager.firebase.*
 import com.android.stockmanager.repository.MarketRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.util.*
 
-class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean = false) :
-    AndroidViewModel(application) {
+class OverviewViewModel(
+    private val marketRepository: MarketRepository,
+    favoriteFragmentModel: Boolean = false
+) :
+    ViewModel() {
 
     private val _navigateToSelectedTicker = MutableLiveData<TickerData?>()
     val navigateToSelectedTicker: LiveData<TickerData?>
         get() = _navigateToSelectedTicker
 
-    private val marketRepository = MarketRepository(getDatabase(application))
     val listValues = if (favoriteFragmentModel)
         marketRepository.favoriteTickersData
     else
-        marketRepository.tickersData
+        marketRepository.popularTickersData
 
     private var _eventNetworkError = MutableLiveData<Boolean>(false)
     val eventNetworkError: LiveData<Boolean>
@@ -71,14 +72,8 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
 
         UserData.init("", mutableListOf())
 
-        if (!favoriteFragmentModel) {
-            val popularTickers: String =
-                if (marketRepository.tickersData.value != null) {
-                    marketRepository.tickersData.value!!.joinToString(",")
-                } else {
-                    "AAPL,MSFT" // TODO("update list of default symbols from database of popular tickers")
-                }
-            refreshDataFromRepository(popularTickers)
+        viewModelScope.launch {
+            fetchPopularTickers()
         }
     }
 
@@ -100,7 +95,7 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
             mutableListOf()
         )
         viewModelScope.launch {
-            marketRepository.clearDatabase()
+            marketRepository.clearFavorites()
             async { UserData.fetchUser() }.await()
             val userFavoriteTickers: String = UserData.tickersToString()
             if (userFavoriteTickers.isNotEmpty()) {
@@ -111,15 +106,41 @@ class OverviewViewModel(application: Application, favoriteFragmentModel: Boolean
 
     fun addTickerToFavorites(tickerData: TickerData) {
         viewModelScope.launch {
-            UserData.addTicker(tickerData.symbol)
+            async { UserData.addTicker(tickerData.symbol) }.await()
             updateDataFromRepository(tickerData, isFavorite = true)
         }
     }
 
     fun removeTickerFromFavorites(ticker: TickerData) {
         viewModelScope.launch {
-            UserData.removeTicker(ticker.symbol)
+            async { UserData.removeTicker(ticker.symbol) }.await()
             updateDataFromRepository(ticker, isFavorite = false)
+        }
+    }
+
+    fun updatePopularTickers(tickers: List<TickerPopularity>) {
+        viewModelScope.launch {
+            marketRepository.updatePopularTickers(tickers)
+        }
+    }
+
+    fun increasePopularity(symbols: String) {
+        val tickersToUpdate = mutableListOf<TickerPopularity>()
+        for (symbol in symbols.split(",")) {
+            val symbolUpperCase = symbol.toUpperCase(Locale.ROOT)
+            if (tickersPopularity.value?.find { it.symbol == symbolUpperCase } != null) {
+                tickersPopularity.value!!.find { it.symbol == symbolUpperCase }!!.no_usages += 1
+                tickersToUpdate.add(tickersPopularity.value!!.find { it.symbol == symbolUpperCase }!!)
+            } else {
+                tickersPopularity.value!!.add(TickerPopularity(symbolUpperCase,1))
+                tickersToUpdate.add(TickerPopularity(symbolUpperCase,1))
+            }
+        }
+        updatePopularTickers(tickersToUpdate)
+        viewModelScope.launch {
+            for (ticker in tickersToUpdate) {
+                updatePopularity(ticker)
+            }
         }
     }
 

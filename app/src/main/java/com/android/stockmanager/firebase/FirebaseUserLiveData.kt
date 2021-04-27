@@ -3,6 +3,7 @@ package com.android.stockmanager.firebase
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import com.android.stockmanager.domain.TickerPopularity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
@@ -113,4 +114,48 @@ object UserData {
                 Timber.e("Error reading document of ${userId.value}: $e")
             }.await()
     }
+}
+
+val tickersPopularity: MutableLiveData<MutableList<TickerPopularity>> = MutableLiveData()
+
+suspend fun fetchPopularTickers() {
+    val db = Firebase.firestore
+    val docRef = db.collection("ticker_popularity")
+
+    docRef.get()
+        .addOnSuccessListener { document ->
+            try {
+                if (!document.isEmpty) {
+                    tickersPopularity.value =
+                        document
+                            .documents
+                            .sortedByDescending { qwe -> qwe["no_usages"] as Long }
+                            .map {
+                                TickerPopularity(
+                                    symbol = it.id,
+                                    no_usages = (it["no_usages"] as Long)
+                                )
+                            }.toMutableList()
+                }
+                Timber.i("Ticker popularity was successfully read")
+            } catch (e: Exception) {
+                Timber.e("Error reading ticker popularity: $e")
+            }
+        }
+        .addOnFailureListener { e ->
+            Timber.e("Error reading ticker popularity: $e")
+        }.await()
+}
+
+suspend fun updatePopularity(tickerPopularity: TickerPopularity) {
+    val db = Firebase.firestore
+    val docRef = db.collection("ticker_popularity")
+
+        docRef.document(tickerPopularity.symbol).set(hashMapOf("no_usages" to tickerPopularity.no_usages))
+            .addOnSuccessListener {
+                Timber.i("Ticker popularity was successfully read")
+            }
+            .addOnFailureListener { e ->
+                Timber.e("Error reading ticker popularity: $e")
+            }.await()
 }
