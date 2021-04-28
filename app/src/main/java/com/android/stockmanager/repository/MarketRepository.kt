@@ -15,7 +15,7 @@ import timber.log.Timber
 
 class MarketRepository(private val marketDao: MarketDao) {
 
-    private val token = "a2e6587824c63503052b83601d96d30a"
+    private val token = "b2d3b57f5737719223221a11a6115675"
 
 
     val popularTickersData: LiveData<List<TickerData>> =

@@ -17,6 +17,7 @@ import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
+
 class OverviewFragment : Fragment() {
 
     private val viewModel: OverviewViewModel by viewModels {
@@ -78,6 +79,8 @@ class OverviewFragment : Fragment() {
         inflater.inflate(R.menu.options_menu, menu)
 
         val menuItem = menu.findItem(R.id.search).actionView as SearchView
+
+        menuItem.queryHint = getString(R.string.search_hint)
 
         menuItem.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
