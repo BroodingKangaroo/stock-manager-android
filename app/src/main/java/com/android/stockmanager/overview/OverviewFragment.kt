@@ -2,18 +2,23 @@ package com.android.stockmanager.overview
 
 import android.os.Bundle
 import android.view.*
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.android.stockmanager.R
 import com.android.stockmanager.StockManagerApplication
 import com.android.stockmanager.databinding.FragmentOverviewBinding
+import com.android.stockmanager.network.NetworkConnection
 import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
 import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -73,6 +78,34 @@ class OverviewFragment : Fragment() {
         setHasOptionsMenu(true)
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val networkConnection = NetworkConnection(requireContext())
+
+        val snackbar = Snackbar.make(
+            requireView(),
+            getString(R.string.offline),
+            Snackbar.LENGTH_INDEFINITE
+        )
+
+        snackbar.view.minimumHeight = 10
+        snackbar.view.setBackgroundResource(R.color.red)
+        val textView =
+            snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
+        textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        textView.textSize = 15F
+        textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+
+        networkConnection.observe(viewLifecycleOwner, Observer { isConnected ->
+            if (isConnected) {
+                if (snackbar.isShown) snackbar.dismiss()
+            } else {
+                snackbar.show()
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

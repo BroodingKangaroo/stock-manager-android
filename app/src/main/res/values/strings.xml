@@ -14,4 +14,5 @@
     <string name="remove_favorite">Remove from favorites</string>
     <string name="daily_open_price">open</string>
     <string name="daily_close_price">close</string>
+    <string name="offline">Connection lost</string>
 </resources>
