@@ -7,15 +7,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.android.stockmanager.R
 import com.android.stockmanager.StockManagerApplication
 import com.android.stockmanager.databinding.FragmentFavoriteTickersBinding
 import com.android.stockmanager.firebase.AuthenticationState
-import com.android.stockmanager.firebase.authenticationState
-import com.android.stockmanager.firebase.userAuthStateLiveData
+import com.android.stockmanager.firebase.UserData
 import com.android.stockmanager.overview.*
 import com.firebase.ui.auth.AuthUI
 import timber.log.Timber
@@ -23,10 +22,9 @@ import timber.log.Timber
 
 class FavoriteTickersFragment : Fragment() {
 
-    private val viewModel: OverviewViewModel by viewModels {
+    private val viewModel: OverviewViewModel by activityViewModels {
         OverviewViewModelFactory(
-            (requireNotNull(this.activity).application as StockManagerApplication).repository,
-            favoriteFragmentModel = true
+            (requireNotNull(this.activity).application as StockManagerApplication).repository
         )
     }
 
@@ -55,7 +53,37 @@ class FavoriteTickersFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        addObservers()
+
+        addListeners()
+    }
+
+    override fun onResume() {
         val navController = findNavController()
+        // Navigate unauthenticated users to login fragment even after pressing back button on login fragment
+        // and returning back to the favorite fragment
+        when (viewModel.authenticationState.value) {
+            AuthenticationState.UNAUTHENTICATED -> navController.navigate(R.id.loginFragment)
+            AuthenticationState.INVALID_AUTHENTICATION -> navController.navigate(R.id.loginFragment)
+            else -> {
+            }
+        }
+        if (binding.tickersList != UserData.favoriteTickers.value) {
+            binding.tickersList.adapter!!.notifyDataSetChanged()
+        }
+        super.onResume()
+    }
+
+    private fun addListeners() {
+        binding.logoutButton.setOnClickListener {
+            AuthUI.getInstance().signOut(requireContext())
+            viewModel.userAuthStateLiveData.firebaseAuth.signOut()
+        }
+    }
+
+    private fun addObservers() {
 
         viewModel.navigateToSelectedTicker.observe(viewLifecycleOwner, Observer {
             if (null != it) {
@@ -66,13 +94,13 @@ class FavoriteTickersFragment : Fragment() {
             }
         })
 
-        viewModel.eventNetworkError.observe(
-            viewLifecycleOwner,
-            Observer<Boolean> { isNetworkError ->
-                if (isNetworkError) onNetworkError(viewModel, activity)
-            })
+        viewModel.eventNetworkError.observe(viewLifecycleOwner, Observer<Boolean> { networkError ->
+            if (networkError) onNetworkError(viewModel, activity)
+        })
 
-        authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+        val navController = findNavController()
+
+        viewModel.authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
             when (authenticationState) {
                 AuthenticationState.AUTHENTICATED -> {
                     Timber.i("Authenticated")
@@ -88,26 +116,6 @@ class FavoriteTickersFragment : Fragment() {
                 )
             }
         })
-
-        binding.logoutButton.setOnClickListener {
-            AuthUI.getInstance().signOut(requireContext())
-            userAuthStateLiveData.firebaseAuth.signOut()
-        }
-
-        super.onViewCreated(view, savedInstanceState)
-    }
-
-    override fun onResume() {
-        val navController = findNavController()
-        // Navigate unauthenticated users to login fragment even after pressing back button on login fragment
-        // and returning back to the favorite fragment
-        when (authenticationState.value) {
-            AuthenticationState.UNAUTHENTICATED -> navController.navigate(R.id.loginFragment)
-            AuthenticationState.INVALID_AUTHENTICATION -> navController.navigate(R.id.loginFragment)
-            else -> {}
-        }
-        binding.tickersList.adapter!!.notifyDataSetChanged()
-        super.onResume()
     }
 
     fun onNetworkError(viewModel: OverviewViewModel, activity: FragmentActivity?) {

@@ -12,7 +12,6 @@ import com.android.stockmanager.R
 import com.android.stockmanager.databinding.RecyclerviewItemBinding
 import com.android.stockmanager.domain.TickerData
 import com.android.stockmanager.firebase.AuthenticationState
-import com.android.stockmanager.firebase.authenticationState
 
 class TickerListAdapter(
     private val clickListener: TickerListListener,
@@ -20,7 +19,6 @@ class TickerListAdapter(
     private val viewModel: OverviewViewModel
 ) :
     ListAdapter<TickerData, TickerListAdapter.TickerListViewHolder>(DiffCallback) {
-
 
     class TickerListViewHolder(
         internal var binding: RecyclerviewItemBinding
@@ -74,22 +72,21 @@ class TickerListAdapter(
     private fun manageFavoriteButton(holder: TickerListViewHolder, position: Int) {
         holder.binding.addToFavoritesButton.setOnClickListener {
             val ticker: TickerData = getItem(position)
-            if (ticker.favorite) {
-                viewModel.removeTickerFromFavorites(ticker)
-            } else {
-                viewModel.addTickerToFavorites(ticker)
+            when (ticker.favorite) {
+                true -> viewModel.removeTickerFromFavorites(ticker)
+                false -> viewModel.addTickerToFavorites(ticker)
             }
             ticker.favorite = !ticker.favorite
             notifyItemChanged(position)
         }
 
         holder.binding.addToFavoritesButton.visibility =
-            when (authenticationState.value) {
+            when (viewModel.authenticationState.value) {
                 AuthenticationState.AUTHENTICATED -> View.VISIBLE
                 else -> View.GONE
             }
 
-        authenticationState.observe(fragment.viewLifecycleOwner, Observer {
+        viewModel.authenticationState.observe(fragment.viewLifecycleOwner, Observer {
             if (it == AuthenticationState.AUTHENTICATED) {
                 holder.binding.addToFavoritesButton.visibility = View.VISIBLE
             } else {

@@ -1,9 +1,6 @@
 package com.android.stockmanager.overview
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.android.stockmanager.domain.TickerData
 import com.android.stockmanager.domain.TickerPopularity
 import com.android.stockmanager.firebase.*
@@ -14,8 +11,7 @@ import java.io.IOException
 import java.util.*
 
 class OverviewViewModel(
-    private val marketRepository: MarketRepository,
-    favoriteFragmentModel: Boolean = false
+    private val marketRepository: MarketRepository
 ) :
     ViewModel() {
 
@@ -23,10 +19,8 @@ class OverviewViewModel(
     val navigateToSelectedTicker: LiveData<TickerData?>
         get() = _navigateToSelectedTicker
 
-    val listValues = if (favoriteFragmentModel)
-        marketRepository.favoriteTickersData
-    else
-        marketRepository.popularTickersData
+    val listValuesOfFavoriteTickers = marketRepository.favoriteTickersData
+    val listValuesOfPopularTickers = marketRepository.popularTickersData
 
     private var _eventNetworkError = MutableLiveData<Boolean>(false)
     val eventNetworkError: LiveData<Boolean>
@@ -37,41 +31,40 @@ class OverviewViewModel(
         get() = _isNetworkErrorShown
 
 
+    val userAuthStateLiveData = FirebaseUserLiveData()
+    var authenticationState: LiveData<AuthenticationState> = userAuthStateLiveData.map { user ->
+        if (user != null) {
+            AuthenticationState.AUTHENTICATED
+        } else {
+            AuthenticationState.UNAUTHENTICATED
+        }
+    }
+
     fun onNetworkErrorShown() {
         _isNetworkErrorShown.value = true
     }
 
-    fun refreshDataFromRepository(symbols: String, isFavorite: Boolean = false) {
+    fun refreshTickersFromAPI(
+        symbols: List<String>
+    ) {
         viewModelScope.launch {
             try {
-                marketRepository.refreshTickers(symbols, isFavorite)
+                marketRepository.refreshTickersFromAPI(symbols)
                 _eventNetworkError.value = false
                 _isNetworkErrorShown.value = false
             } catch (networkError: IOException) {
-                if (listValues.value.isNullOrEmpty())
+                if (listValuesOfFavoriteTickers.value.isNullOrEmpty() && listValuesOfPopularTickers.value.isNullOrEmpty())
                     _eventNetworkError.value = true
             }
         }
     }
 
-    private suspend fun updateDataFromRepository(
-        tickerData: TickerData,
-        isFavorite: Boolean = false
-    ) {
-        try {
-            marketRepository.updateTicker(tickerData, isFavorite)
-            _eventNetworkError.value = false
-            _isNetworkErrorShown.value = false
-        } catch (networkError: IOException) {
-            if (listValues.value.isNullOrEmpty())
-                _eventNetworkError.value = true
-        }
-    }
 
     init {
-
         UserData.init("", mutableListOf())
+    }
 
+    fun fetchPopularTickersWrapper() {
         viewModelScope.launch {
             fetchPopularTickers()
         }
@@ -96,25 +89,25 @@ class OverviewViewModel(
         )
         viewModelScope.launch {
             marketRepository.clearFavorites()
-            async { UserData.fetchUser() }.await()
-            val userFavoriteTickers: String = UserData.tickersToString()
-            if (userFavoriteTickers.isNotEmpty()) {
-                refreshDataFromRepository(userFavoriteTickers, isFavorite = true)
+            async { UserData.getFavoriteTickersFromFirebase() }.await()
+            if (!UserData.favoriteTickers.value.isNullOrEmpty()) {
+                refreshTickersFromAPI(UserData.favoriteTickers.value!!)
+                marketRepository.insertFavoriteTickers(UserData.favoriteTickers.value!!)
             }
         }
     }
 
-    fun addTickerToFavorites(tickerData: TickerData) {
+    fun addTickerToFavorites(ticker: TickerData) {
         viewModelScope.launch {
-            async { UserData.addTicker(tickerData.symbol) }.await()
-            updateDataFromRepository(tickerData, isFavorite = true)
+            marketRepository.updateTicker(ticker, true)
+            async { UserData.addTicker(ticker.symbol) }.await()
         }
     }
 
     fun removeTickerFromFavorites(ticker: TickerData) {
         viewModelScope.launch {
+            marketRepository.updateTicker(ticker, false)
             async { UserData.removeTicker(ticker.symbol) }.await()
-            updateDataFromRepository(ticker, isFavorite = false)
         }
     }
 
@@ -124,16 +117,16 @@ class OverviewViewModel(
         }
     }
 
-    fun increasePopularity(symbols: String) {
+    fun increasePopularity(symbols: List<String>) {
         val tickersToUpdate = mutableListOf<TickerPopularity>()
-        for (symbol in symbols.split(",")) {
+        for (symbol in symbols) {
             val symbolUpperCase = symbol.toUpperCase(Locale.ROOT)
             if (tickersPopularity.value?.find { it.symbol == symbolUpperCase } != null) {
                 tickersPopularity.value!!.find { it.symbol == symbolUpperCase }!!.no_usages += 1
                 tickersToUpdate.add(tickersPopularity.value!!.find { it.symbol == symbolUpperCase }!!)
             } else {
-                tickersPopularity.value!!.add(TickerPopularity(symbolUpperCase,1))
-                tickersToUpdate.add(TickerPopularity(symbolUpperCase,1))
+                tickersPopularity.value!!.add(TickerPopularity(symbolUpperCase, 1))
+                tickersToUpdate.add(TickerPopularity(symbolUpperCase, 1))
             }
         }
         updatePopularTickers(tickersToUpdate)

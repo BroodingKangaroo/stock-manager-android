@@ -1,9 +1,8 @@
 package com.android.stockmanager.repository
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import com.android.stockmanager.database.DatabaseTickerFavorite
 import com.android.stockmanager.database.MarketDao
-import com.android.stockmanager.database.asDomainModel
 import com.android.stockmanager.domain.TickerData
 import com.android.stockmanager.domain.TickerPopularity
 import com.android.stockmanager.domain.asDatabaseModel
@@ -15,43 +14,32 @@ import timber.log.Timber
 
 class MarketRepository(private val marketDao: MarketDao) {
 
-    private val token = "b2d3b57f5737719223221a11a6115675"
+    private val token = "50c77d0b7b7f002ee2359a2323b1fcce"
 
+    val popularTickersData: LiveData<List<TickerData>> = marketDao.getAllMarketDataByPopularity()
 
-    val popularTickersData: LiveData<List<TickerData>> =
-        Transformations.map(marketDao.getAllMarketDataByPopularity()) {
-            it.asDomainModel()
-        }
+    val favoriteTickersData: LiveData<List<TickerData>> = marketDao.getFavoriteTickers()
 
-    val favoriteTickersData: LiveData<List<TickerData>> =
-        Transformations.map(marketDao.getFavoriteTickers()) {
-            it.asDomainModel()
-        }
-
-    suspend fun refreshTickers(symbols: String, isFavorite: Boolean = false) {
+    suspend fun refreshTickersFromAPI(symbols: List<String>) {
         withContext(Dispatchers.IO) {
             Timber.d("refresh tickers is called")
-            val market = StockManagerApi.retrofitService.getTickers(token, symbols)
-            marketDao.insertAll(market.asDatabaseModel(isFavorite))
+            val market = StockManagerApi.retrofitService.getTickers(token, symbols.joinToString(","))
+            marketDao.insertMarketData(market.asDatabaseModel())
         }
     }
 
     suspend fun updateTicker(ticker: TickerData, isFavorite: Boolean = false) {
+        Timber.d("update ticker is called")
         withContext(Dispatchers.IO) {
-            Timber.d("update ticker is called")
-            marketDao.updateTicker(ticker.asDatabaseModel(isFavorite))
-        }
-    }
-
-    suspend fun clearDatabase() {
-        withContext(Dispatchers.IO) {
-            marketDao.removeAllMarketData()
-        }
-    }
-
-    suspend fun clearFavorites() {
-        withContext(Dispatchers.IO) {
-            marketDao.clearFavorites()
+            marketDao.updateTicker(ticker.asDatabaseModel())
+            marketDao.insertFavorite(
+                listOf(
+                    DatabaseTickerFavorite(
+                        symbol = ticker.symbol,
+                        favorite = isFavorite
+                    )
+                )
+            )
         }
     }
 
@@ -59,8 +47,26 @@ class MarketRepository(private val marketDao: MarketDao) {
         withContext(Dispatchers.IO) {
             val symbols = tickers.joinToString(",") { it.symbol }
             val market = StockManagerApi.retrofitService.getTickers(token, symbols)
-            marketDao.insertAll(market.asDatabaseModel())
+            marketDao.insertMarketData(market.asDatabaseModel())
             marketDao.insertPopularity(tickers.map { it.asDatabaseModel() })
+        }
+    }
+
+    suspend fun insertFavoriteTickers(symbols: List<String>) {
+        withContext(Dispatchers.IO) {
+            val databaseTickers = symbols.map { symbol ->
+                DatabaseTickerFavorite(
+                    symbol = symbol,
+                    favorite = true
+                )
+            }
+            marketDao.insertFavorite(databaseTickers)
+        }
+    }
+
+    suspend fun clearFavorites() {
+        withContext(Dispatchers.IO) {
+            marketDao.clearFavorites()
         }
     }
 }

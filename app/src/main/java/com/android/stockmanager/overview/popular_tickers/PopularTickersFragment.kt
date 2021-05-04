@@ -7,19 +7,22 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.android.stockmanager.StockManagerApplication
 import com.android.stockmanager.databinding.FragmentPopularTickersBinding
 import com.android.stockmanager.firebase.tickersPopularity
+import com.android.stockmanager.network.NetworkConnection
 import com.android.stockmanager.overview.*
 
 
 class PopularTickersFragment : Fragment() {
 
-    private val viewModel: OverviewViewModel by viewModels {
-        OverviewViewModelFactory((requireNotNull(this.activity).application as StockManagerApplication).repository)
+    private val viewModel: OverviewViewModel by activityViewModels {
+        OverviewViewModelFactory(
+            (requireNotNull(this.activity).application as StockManagerApplication).repository
+        )
     }
 
     private lateinit var binding: FragmentPopularTickersBinding
@@ -28,7 +31,7 @@ class PopularTickersFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
+
         binding = FragmentPopularTickersBinding.inflate(inflater)
 
         binding.lifecycleOwner = this
@@ -42,6 +45,31 @@ class PopularTickersFragment : Fragment() {
             this,
             viewModel
         )
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        addObservers()
+
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onResume() {
+        binding.tickersList.adapter!!.notifyDataSetChanged()
+        super.onResume()
+    }
+
+    private fun addObservers() {
+
+        val networkConnection = NetworkConnection(requireContext())
+
+        networkConnection.observe(viewLifecycleOwner, Observer { isConnected ->
+            if (isConnected) {
+                viewModel.fetchPopularTickersWrapper()
+            }
+        })
 
         viewModel.navigateToSelectedTicker.observe(viewLifecycleOwner, Observer {
             if (null != it) {
@@ -63,16 +91,9 @@ class PopularTickersFragment : Fragment() {
             Observer<Boolean> { isNetworkError ->
                 if (isNetworkError) onNetworkError(viewModel, activity)
             })
-
-        return binding.root
     }
 
-    override fun onResume() {
-        binding.tickersList.adapter!!.notifyDataSetChanged()
-        super.onResume()
-    }
-
-    fun onNetworkError(viewModel: OverviewViewModel, activity: FragmentActivity?) {
+    private fun onNetworkError(viewModel: OverviewViewModel, activity: FragmentActivity?) {
         if (!viewModel.isNetworkErrorShown.value!!) {
             Toast.makeText(activity, "Network Error", Toast.LENGTH_LONG).show()
             viewModel.onNetworkErrorShown()

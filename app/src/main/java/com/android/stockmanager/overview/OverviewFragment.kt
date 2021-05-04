@@ -8,7 +8,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
@@ -25,8 +25,10 @@ import com.google.android.material.tabs.TabLayoutMediator
 
 class OverviewFragment : Fragment() {
 
-    private val viewModel: OverviewViewModel by viewModels {
-        OverviewViewModelFactory((requireNotNull(this.activity).application as StockManagerApplication).repository)
+    private val viewModel: OverviewViewModel by activityViewModels {
+        OverviewViewModelFactory(
+            (requireNotNull(this.activity).application as StockManagerApplication).repository
+        )
     }
 
     class ViewPagerAdapter(
@@ -119,8 +121,8 @@ class OverviewFragment : Fragment() {
 
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query!!.isNotEmpty()) {
-                    viewModel.increasePopularity(query)
-                    viewModel.refreshDataFromRepository(query)
+                    viewModel.increasePopularity(query.split(","))
+                    viewModel.refreshTickersFromAPI(query.split(","))
                 }
                 return true
             }

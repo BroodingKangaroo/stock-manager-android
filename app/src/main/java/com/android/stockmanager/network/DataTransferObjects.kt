@@ -45,13 +45,12 @@ fun NetworkTickerContainer.asDomainModel(): List<TickerData> {
 /**
  * Convert Network results to database objects
  */
-fun NetworkTickerContainer.asDatabaseModel(isFavorite: Boolean = false): List<DatabaseMarket> {
+fun NetworkTickerContainer.asDatabaseModel(): List<DatabaseMarket> {
     return data.map {
         DatabaseMarket(
             symbol = it.symbol,
             open = it.open,
             close = it.close,
-            favorite = isFavorite
         )
     }
 }

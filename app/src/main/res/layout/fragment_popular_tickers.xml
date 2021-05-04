@@ -21,7 +21,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:listData="@{viewModel.listValues}"
+            app:listData="@{viewModel.listValuesOfPopularTickers}"
             tools:listitem="@layout/recyclerview_item" />
 
 

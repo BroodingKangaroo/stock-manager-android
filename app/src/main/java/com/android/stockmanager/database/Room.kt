@@ -3,24 +3,33 @@ package com.android.stockmanager.database
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.android.stockmanager.domain.TickerData
 
 @Dao
 interface MarketDao {
-
     @Query(
         """
-        SELECT m.* 
-        FROM databasetickerpopularity p INNER JOIN databasemarket m ON p.symbol=m.symbol
+        SELECT m.*, f.favorite
+        FROM databasetickerpopularity p 
+        INNER JOIN databasemarket m ON p.symbol = m.symbol
+        LEFT JOIN databasetickerfavorite f ON m.symbol = f.symbol
         ORDER BY no_usages DESC
         """
     )
-    fun getAllMarketDataByPopularity(): LiveData<List<DatabaseMarket>>
+    fun getAllMarketDataByPopularity(): LiveData<List<TickerData>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(tickers: List<DatabaseMarket>)
+    fun insertMarketData(tickers: List<DatabaseMarket>)
 
-    @Query("SELECT * FROM databasemarket WHERE favorite = 1")
-    fun getFavoriteTickers(): LiveData<List<DatabaseMarket>>
+    @Query(
+        """
+        SELECT m.*, f.favorite
+        FROM databasemarket m 
+        INNER JOIN databasetickerfavorite f ON m.symbol = f.symbol
+        WHERE f.favorite = 1
+        """
+    )
+    fun getFavoriteTickers(): LiveData<List<TickerData>>
 
     @Update
     fun updateTicker(ticker: DatabaseMarket)
@@ -28,7 +37,7 @@ interface MarketDao {
     @Query("DELETE FROM databasemarket")
     fun removeAllMarketData()
 
-    @Query("UPDATE databasemarket SET favorite = 0")
+    @Query("UPDATE databasetickerfavorite SET favorite = 0")
     fun clearFavorites()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -36,13 +45,16 @@ interface MarketDao {
 
     @Query("SELECT * FROM databasetickerpopularity")
     fun getPopularity(): LiveData<DatabaseTickerPopularity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertFavorite(symbols: List<DatabaseTickerFavorite>)
 }
 
 
 @Database(
-    entities = [DatabaseMarket::class, DatabaseTickerPopularity::class],
+    entities = [DatabaseMarket::class, DatabaseTickerPopularity::class, DatabaseTickerFavorite::class],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class MarketRoomDatabase : RoomDatabase() {
 

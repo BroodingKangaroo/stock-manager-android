@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.net.*
 import android.os.Build
 import androidx.lifecycle.LiveData
+import timber.log.Timber
 
 @Suppress("DEPRECATION")
 class NetworkConnection(private val context: Context) : LiveData<Boolean>() {
@@ -37,10 +38,14 @@ class NetworkConnection(private val context: Context) : LiveData<Boolean>() {
 
     override fun onInactive() {
         super.onInactive()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            connectivityManager.unregisterNetworkCallback(connectivityManagerCallback())
-        } else {
-            context.unregisterReceiver(networkReceiver)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                connectivityManager.unregisterNetworkCallback(connectivityManagerCallback())
+            } else {
+                context.unregisterReceiver(networkReceiver)
+            }
+        } catch (e: IllegalArgumentException) {
+            Timber.i("Network is already unregistered")
         }
     }
 

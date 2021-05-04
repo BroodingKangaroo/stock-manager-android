@@ -18,16 +18,15 @@ data class TickerData(
 data class TickerPopularity(
     val symbol: String,
     var no_usages: Long
-): Parcelable
+) : Parcelable
 
 
 @JvmName("domainToDatabaseMarket")
-fun TickerData.asDatabaseModel(isFavorite: Boolean = false): DatabaseMarket {
+fun TickerData.asDatabaseModel(): DatabaseMarket {
     return DatabaseMarket(
         symbol = this.symbol,
         open = this.open,
-        close = this.close,
-        favorite = isFavorite,
+        close = this.close
     )
 }
 

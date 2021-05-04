@@ -20,8 +20,8 @@ class RefreshDataWorker(appContext: Context, params: WorkerParameters) :
         val repository = MarketRepository(database.marketDao())
 
         try {
-            val symbols = database.marketDao().getAllMarketDataByPopularity().value?.joinToString(",")!!
-            repository.refreshTickers(symbols)
+            val tickers = database.marketDao().getAllMarketDataByPopularity().value!!
+            repository.refreshTickersFromAPI(tickers.map { ticker-> ticker.symbol })
             Timber.d("WorkManager: Work request for sync is run")
         } catch (e: HttpException) {
             return Result.retry()

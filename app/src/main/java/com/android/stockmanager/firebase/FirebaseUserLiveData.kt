@@ -2,7 +2,6 @@ package com.android.stockmanager.firebase
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import com.android.stockmanager.domain.TickerPopularity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -12,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
 
 class FirebaseUserLiveData : LiveData<FirebaseUser?>() {
     val firebaseAuth = FirebaseAuth.getInstance()
@@ -41,17 +41,6 @@ class FirebaseUserLiveData : LiveData<FirebaseUser?>() {
 enum class AuthenticationState {
     AUTHENTICATED, UNAUTHENTICATED, INVALID_AUTHENTICATION
 }
-
-val userAuthStateLiveData = FirebaseUserLiveData()
-
-var authenticationState: LiveData<AuthenticationState> = userAuthStateLiveData.map { user ->
-    if (user != null) {
-        AuthenticationState.AUTHENTICATED
-    } else {
-        AuthenticationState.UNAUTHENTICATED
-    }
-}
-
 
 object UserData {
 
@@ -91,11 +80,7 @@ object UserData {
         }
     }
 
-    fun tickersToString(): String {
-        return favoriteTickers.value!!.joinToString(",")
-    }
-
-    suspend fun fetchUser() {
+    suspend fun getFavoriteTickersFromFirebase() {
         val db = Firebase.firestore
         val docRef = db.collection("users").document(userId.value!!)
 
