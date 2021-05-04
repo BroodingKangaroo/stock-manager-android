@@ -12,6 +12,8 @@ import com.android.stockmanager.R
 import com.android.stockmanager.databinding.RecyclerviewItemBinding
 import com.android.stockmanager.domain.TickerData
 import com.android.stockmanager.firebase.AuthenticationState
+import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
+import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
 
 class TickerListAdapter(
     private val clickListener: TickerListListener,
@@ -57,9 +59,32 @@ class TickerListAdapter(
     override fun onBindViewHolder(holder: TickerListViewHolder, position: Int) {
         holder.bind(clickListener, getItem(position))
 
+        val itemExpanded = when (fragment) {
+            is PopularTickersFragment -> getItem(position).expandedPopular
+            is FavoriteTickersFragment -> getItem(position).expandedFavorite
+            else -> false
+        }
+
+        holder.binding.expandedItem.visibility = when (itemExpanded) {
+            true -> View.VISIBLE
+            false -> View.GONE
+        }
+
+        holder.binding.groupDivider.visibility = when (itemExpanded) {
+            true -> View.VISIBLE
+            false -> View.GONE
+        }
+
         holder.binding.header.setOnClickListener {
             try {
-                getItem(position).apply { expanded = !expanded }
+                val ticker = getItem(position)
+                when (fragment) {
+                    is PopularTickersFragment -> ticker.apply { expandedPopular = !expandedPopular }
+                    is FavoriteTickersFragment -> ticker.apply {
+                        expandedFavorite = !expandedFavorite
+                    }
+                }
+                viewModel.insertExpanded(ticker)
                 notifyItemChanged(position)
             } catch (e: IndexOutOfBoundsException) {
                 notifyDataSetChanged()

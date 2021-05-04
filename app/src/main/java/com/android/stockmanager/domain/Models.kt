@@ -11,7 +11,9 @@ data class TickerData(
     val open: Double,
     val close: Double,
     var favorite: Boolean = false,
-    var expanded: Boolean = false, // control expandability of the RecyclerView items
+    // control expandability of the RecyclerView items
+    var expandedFavorite: Boolean = false,
+    var expandedPopular: Boolean = false,
 ) : Parcelable
 
 @Parcelize

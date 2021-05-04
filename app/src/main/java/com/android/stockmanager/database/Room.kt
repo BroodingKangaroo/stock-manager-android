@@ -9,10 +9,11 @@ import com.android.stockmanager.domain.TickerData
 interface MarketDao {
     @Query(
         """
-        SELECT m.*, f.favorite
+        SELECT m.*, f.favorite, e.expanded_popular as expandedPopular, e.expanded_favorite as expandedFavorite
         FROM databasetickerpopularity p 
         INNER JOIN databasemarket m ON p.symbol = m.symbol
         LEFT JOIN databasetickerfavorite f ON m.symbol = f.symbol
+        LEFT JOIN databasetickerexpanded e ON m.symbol = e.symbol
         ORDER BY no_usages DESC
         """
     )
@@ -23,9 +24,10 @@ interface MarketDao {
 
     @Query(
         """
-        SELECT m.*, f.favorite
+        SELECT m.*, f.favorite, e.expanded_popular as expandedPopular, e.expanded_favorite as expandedFavorite
         FROM databasemarket m 
         INNER JOIN databasetickerfavorite f ON m.symbol = f.symbol
+        LEFT JOIN databasetickerexpanded e ON m.symbol = e.symbol
         WHERE f.favorite = 1
         """
     )
@@ -48,11 +50,22 @@ interface MarketDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertFavorite(symbols: List<DatabaseTickerFavorite>)
+
+    @Query("DELETE FROM databasetickerexpanded")
+    fun clearExpanded()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertExpanded(tickers: List<DatabaseTickerExpanded>)
 }
 
 
 @Database(
-    entities = [DatabaseMarket::class, DatabaseTickerPopularity::class, DatabaseTickerFavorite::class],
+    entities = [
+        DatabaseMarket::class,
+        DatabaseTickerPopularity::class,
+        DatabaseTickerFavorite::class,
+        DatabaseTickerExpanded::class
+    ],
     version = 1,
     exportSchema = true
 )

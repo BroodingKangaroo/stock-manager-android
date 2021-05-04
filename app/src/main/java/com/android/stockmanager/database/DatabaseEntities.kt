@@ -9,10 +9,8 @@ import com.android.stockmanager.domain.TickerPopularity
 data class DatabaseMarket(
     @PrimaryKey
     val symbol: String,
-
     val open: Double,
-    val close: Double,
-    val expanded: Boolean = false
+    val close: Double
 )
 
 @Entity
@@ -29,6 +27,14 @@ data class DatabaseTickerFavorite(
     val favorite: Boolean = false
 )
 
+@Entity
+data class DatabaseTickerExpanded(
+    @PrimaryKey
+    val symbol: String,
+    val expanded_popular: Boolean = false,
+    val expanded_favorite: Boolean = false
+)
+
 @JvmName("marketToDomain")
 fun List<DatabaseMarket>.asDomainModel(isFavorite: Boolean): List<TickerData> {
     return map {
@@ -36,8 +42,7 @@ fun List<DatabaseMarket>.asDomainModel(isFavorite: Boolean): List<TickerData> {
             symbol = it.symbol,
             open = it.open,
             close = it.close,
-            favorite = isFavorite,
-            expanded = it.expanded,
+            favorite = isFavorite
         )
     }
 }

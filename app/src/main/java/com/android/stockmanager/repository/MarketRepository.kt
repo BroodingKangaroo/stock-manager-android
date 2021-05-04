@@ -1,6 +1,7 @@
 package com.android.stockmanager.repository
 
 import androidx.lifecycle.LiveData
+import com.android.stockmanager.database.DatabaseTickerExpanded
 import com.android.stockmanager.database.DatabaseTickerFavorite
 import com.android.stockmanager.database.MarketDao
 import com.android.stockmanager.domain.TickerData
@@ -23,7 +24,8 @@ class MarketRepository(private val marketDao: MarketDao) {
     suspend fun refreshTickersFromAPI(symbols: List<String>) {
         withContext(Dispatchers.IO) {
             Timber.d("refresh tickers is called")
-            val market = StockManagerApi.retrofitService.getTickers(token, symbols.joinToString(","))
+            val market =
+                StockManagerApi.retrofitService.getTickers(token, symbols.joinToString(","))
             marketDao.insertMarketData(market.asDatabaseModel())
         }
     }
@@ -67,6 +69,18 @@ class MarketRepository(private val marketDao: MarketDao) {
     suspend fun clearFavorites() {
         withContext(Dispatchers.IO) {
             marketDao.clearFavorites()
+        }
+    }
+
+    suspend fun clearExpanded() {
+        withContext(Dispatchers.IO) {
+            marketDao.clearExpanded()
+        }
+    }
+
+    suspend fun insertExpanded(ticker: TickerData) {
+        withContext(Dispatchers.IO) {
+            marketDao.insertExpanded(listOf(DatabaseTickerExpanded(ticker.symbol, ticker.expandedPopular, ticker.expandedFavorite)))
         }
     }
 }

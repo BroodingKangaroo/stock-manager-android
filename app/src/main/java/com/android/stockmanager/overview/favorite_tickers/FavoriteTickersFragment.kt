@@ -104,7 +104,6 @@ class FavoriteTickersFragment : Fragment() {
             when (authenticationState) {
                 AuthenticationState.AUTHENTICATED -> {
                     Timber.i("Authenticated")
-                    viewModel.setFirebaseUser()
                 }
                 // If the user is not logged in, they should not be able to set any favorite tickers,
                 // so navigate them to the login fragment

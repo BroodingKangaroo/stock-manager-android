@@ -89,6 +89,7 @@ class OverviewViewModel(
         )
         viewModelScope.launch {
             marketRepository.clearFavorites()
+            marketRepository.clearExpanded()
             async { UserData.getFavoriteTickersFromFirebase() }.await()
             if (!UserData.favoriteTickers.value.isNullOrEmpty()) {
                 refreshTickersFromAPI(UserData.favoriteTickers.value!!)
@@ -114,6 +115,12 @@ class OverviewViewModel(
     fun updatePopularTickers(tickers: List<TickerPopularity>) {
         viewModelScope.launch {
             marketRepository.updatePopularTickers(tickers)
+        }
+    }
+
+    fun insertExpanded(ticker: TickerData) {
+        viewModelScope.launch {
+            marketRepository.insertExpanded(ticker)
         }
     }
 

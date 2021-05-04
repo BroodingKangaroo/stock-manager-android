@@ -75,15 +75,13 @@
             <View
                 android:id="@+id/group_divider"
                 style="@style/Divider"
-                android:layout_below="@id/close"
-                android:visibility="@{ticker_data.expanded ? View.VISIBLE : View.GONE}" />
+                android:layout_below="@id/close" />
 
             <RelativeLayout
                 android:id="@+id/expanded_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/group_divider"
-                android:visibility="@{ticker_data.expanded ? View.VISIBLE : View.GONE}">
+                android:layout_below="@id/group_divider">
 
                 <TextView
                     android:id="@+id/expanded_open_text"

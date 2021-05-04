@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.android.stockmanager.R
 import com.android.stockmanager.StockManagerApplication
 import com.android.stockmanager.databinding.FragmentOverviewBinding
+import com.android.stockmanager.firebase.AuthenticationState
 import com.android.stockmanager.network.NetworkConnection
 import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
 import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
@@ -86,26 +87,18 @@ class OverviewFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val networkConnection = NetworkConnection(requireContext())
-
-        val snackbar = Snackbar.make(
-            requireView(),
-            getString(R.string.offline),
-            Snackbar.LENGTH_INDEFINITE
-        )
-
-        snackbar.view.minimumHeight = 10
-        snackbar.view.setBackgroundResource(R.color.red)
-        val textView =
-            snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
-        textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
-        textView.textSize = 15F
-        textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-
+        val snackbar = createSnackbar()
         networkConnection.observe(viewLifecycleOwner, Observer { isConnected ->
             if (isConnected) {
                 if (snackbar.isShown) snackbar.dismiss()
             } else {
                 snackbar.show()
+            }
+        })
+
+        viewModel.authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+            if (authenticationState == AuthenticationState.AUTHENTICATED) {
+                viewModel.setFirebaseUser()
             }
         })
     }
@@ -133,6 +126,24 @@ class OverviewFragment : Fragment() {
         })
 
         super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    private fun createSnackbar(): Snackbar {
+        val snackbar = Snackbar.make(
+            requireView(),
+            getString(R.string.offline),
+            Snackbar.LENGTH_INDEFINITE
+        )
+
+        snackbar.view.minimumHeight = 10
+        snackbar.view.setBackgroundResource(R.color.red)
+        val textView =
+            snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
+        textView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        textView.textSize = 15F
+        textView.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+
+        return snackbar
     }
 
     fun onNetworkError(viewModel: OverviewViewModel, activity: FragmentActivity?) {
