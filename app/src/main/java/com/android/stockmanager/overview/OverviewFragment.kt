@@ -1,7 +1,9 @@
 package com.android.stockmanager.overview
 
+import android.content.Context
 import android.os.Bundle
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
@@ -117,6 +119,7 @@ class OverviewFragment : Fragment() {
                     viewModel.increasePopularity(query.split(","))
                     viewModel.refreshTickersFromAPI(query.split(","))
                 }
+                this@OverviewFragment.view?.hideKeyboard()
                 return true
             }
 
@@ -126,6 +129,11 @@ class OverviewFragment : Fragment() {
         })
 
         super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    fun View.hideKeyboard() {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
     private fun createSnackbar(): Snackbar {
