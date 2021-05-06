@@ -15,4 +15,5 @@
     <string name="daily_open_price">open</string>
     <string name="daily_close_price">close</string>
     <string name="offline">Connection lost. All the changes you make might not be synchronized.</string>
+    <string name="search">Search...</string>
 </resources>
