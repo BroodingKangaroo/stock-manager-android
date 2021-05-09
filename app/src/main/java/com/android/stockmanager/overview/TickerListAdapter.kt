@@ -14,6 +14,7 @@ import com.android.stockmanager.domain.TickerData
 import com.android.stockmanager.firebase.AuthenticationState
 import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
 import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
+import kotlin.math.absoluteValue
 
 class TickerListAdapter(
     private val clickListener: TickerListListener,
@@ -91,8 +92,11 @@ class TickerListAdapter(
             }
         }
 
+        processDayChange(holder, position)
+
         manageFavoriteButton(holder, position)
     }
+
 
     private fun manageFavoriteButton(holder: TickerListViewHolder, position: Int) {
         holder.binding.addToFavoritesButton.setOnClickListener {
@@ -122,6 +126,28 @@ class TickerListAdapter(
         holder.binding.addToFavoritesButton.text = when (getItem(position).favorite) {
             true -> holder.itemView.context.getString(R.string.remove_favorite)
             false -> holder.itemView.context.getString(R.string.add_favorite)
+        }
+    }
+
+    private fun processDayChange(holder: TickerListViewHolder, position: Int) {
+        val ticker = getItem(position)
+        val dayChange = (ticker.open - ticker.close)
+        val dayChangeAbs = dayChange.absoluteValue
+        val relativeChange = (dayChange / ticker.open).absoluteValue
+        val textFormat = fragment.getString(R.string.ticker_cost_text_format)
+        when {
+            dayChange > 0 -> {
+                holder.binding.dayChange.setTextColor(fragment.resources.getColor(R.color.green))
+                holder.binding.dayChange.text = textFormat.format("+", dayChangeAbs, relativeChange)
+            }
+            dayChange < 0 -> {
+                holder.binding.dayChange.setTextColor(fragment.resources.getColor(R.color.red))
+                holder.binding.dayChange.text = textFormat.format("-", dayChangeAbs, relativeChange)
+            }
+            dayChange == 0.0 -> {
+                holder.binding.dayChange.setTextColor(fragment.resources.getColor(R.color.black))
+                holder.binding.dayChange.text = textFormat.format("", dayChangeAbs, relativeChange)
+            }
         }
     }
 }

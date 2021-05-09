@@ -57,25 +57,25 @@
                 android:textSize="30sp" />
 
             <TextView
-                android:id="@+id/open"
+                android:id="@+id/price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
-                android:text="@{Double.toString(ticker_data.open)}" />
+                android:textSize="20sp"
+                android:text="@{`$` + Double.toString(ticker_data.close)}" />
 
             <TextView
-                android:id="@+id/close"
+                android:id="@+id/day_change"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/open"
-                android:layout_alignParentEnd="true"
-                android:text="@{Double.toString(ticker_data.close)}" />
+                android:layout_below="@id/price"
+                android:layout_alignParentEnd="true" />
 
             <View
                 android:id="@+id/group_divider"
                 style="@style/Divider"
-                android:layout_below="@id/close" />
+                android:layout_below="@id/day_change" />
 
             <RelativeLayout
                 android:id="@+id/expanded_item"

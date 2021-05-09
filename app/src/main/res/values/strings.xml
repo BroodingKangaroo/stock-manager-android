@@ -23,4 +23,5 @@
     <string name="add_new_ticker_positive_button">Add</string>
     <string name="add_new_ticker_negative_button">Cancel</string>
     <string name="snackbar_dismiss_button">DISMISS</string>
+    <string name="ticker_cost_text_format">%s\$%.2f (%.3f%%)</string>
 </resources>
