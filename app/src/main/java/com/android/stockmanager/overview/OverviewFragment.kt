@@ -23,6 +23,7 @@ import com.android.stockmanager.firebase.AuthenticationState
 import com.android.stockmanager.network.NetworkConnection
 import com.android.stockmanager.overview.favorite_tickers.FavoriteTickersFragment
 import com.android.stockmanager.overview.popular_tickers.PopularTickersFragment
+import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -75,6 +76,30 @@ class OverviewFragment : Fragment() {
         viewPager = binding.overviewViewPager
         viewPager.adapter = viewPagerAdapter
         val tabLayout: TabLayout = binding.overviewTabLayout
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                viewPager.currentItem = tab!!.position
+                when (tab.position) {
+                    0 -> {
+                        binding.fab.setImageResource(R.drawable.ic_baseline_add_24)
+                        binding.fab.setOnClickListener {
+                            showAddTickerDialog(requireContext())
+                        }
+                    }
+                    1 -> {
+                        binding.fab.setImageResource(R.drawable.ic_logout_black_24dp)
+                        binding.fab.setOnClickListener {
+                            AuthUI.getInstance().signOut(requireContext())
+                            viewModel.userAuthStateLiveData.firebaseAuth.signOut()
+                        }
+                    }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when (position) {
                 0 -> tab.text = "Popular"
@@ -105,10 +130,6 @@ class OverviewFragment : Fragment() {
                 viewModel.setFirebaseUser()
             }
         })
-
-        binding.fab.setOnClickListener {
-            showAddTickerDialog(requireContext())
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -140,12 +161,12 @@ class OverviewFragment : Fragment() {
 
     private fun showAddTickerDialog(context: Context) {
         val editText = EditText(context).apply { setHint(R.string.search_hint) }
-        val dialog = AlertDialog
+        AlertDialog
             .Builder(context)
             .setTitle(getString(R.string.add_new_ticker_dialog_title))
             .setMessage(getString(R.string.add_new_ticker_dialog_message))
             .setView(editText)
-            .setPositiveButton(getString(R.string.add_new_ticker_positive_button)) { dialog, which ->
+            .setPositiveButton(getString(R.string.add_new_ticker_positive_button)) { _, _ ->
                 val inputText = editText.text
                 val snackbar =
                     if (Regex("[a-zA-Z,]+", RegexOption.IGNORE_CASE).matches(inputText)) {

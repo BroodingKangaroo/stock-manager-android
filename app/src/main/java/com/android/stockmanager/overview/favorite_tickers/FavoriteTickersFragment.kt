@@ -16,7 +16,6 @@ import com.android.stockmanager.databinding.FragmentFavoriteTickersBinding
 import com.android.stockmanager.firebase.AuthenticationState
 import com.android.stockmanager.firebase.UserData
 import com.android.stockmanager.overview.*
-import com.firebase.ui.auth.AuthUI
 import timber.log.Timber
 
 
@@ -56,8 +55,6 @@ class FavoriteTickersFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         addObservers()
-
-        addListeners()
     }
 
     override fun onResume() {
@@ -74,13 +71,6 @@ class FavoriteTickersFragment : Fragment() {
             binding.tickersList.adapter!!.notifyDataSetChanged()
         }
         super.onResume()
-    }
-
-    private fun addListeners() {
-        binding.logoutButton.setOnClickListener {
-            AuthUI.getInstance().signOut(requireContext())
-            viewModel.userAuthStateLiveData.firebaseAuth.signOut()
-        }
     }
 
     private fun addObservers() {
