@@ -10,7 +10,8 @@ data class DatabaseMarket(
     @PrimaryKey
     val symbol: String,
     val open: Double,
-    val close: Double
+    val close: Double,
+    val name: String
 )
 
 @Entity
@@ -42,13 +43,14 @@ fun List<DatabaseMarket>.asDomainModel(isFavorite: Boolean): List<TickerData> {
             symbol = it.symbol,
             open = it.open,
             close = it.close,
-            favorite = isFavorite
+            favorite = isFavorite,
+            name = it.name
         )
     }
 }
 
 @JvmName("popularityToDomain")
-fun List<DatabaseTickerPopularity>.asDomainModel() : List<TickerPopularity> {
+fun List<DatabaseTickerPopularity>.asDomainModel(): List<TickerPopularity> {
     return map {
         TickerPopularity(
             symbol = it.symbol,

@@ -50,19 +50,26 @@ class MarketRepository(private val marketDao: MarketDao) {
     private fun filterPopularTickers(searchString: String?) =
         popularTickers.value?.filter { tickerData ->
             tickerData.symbol.contains(searchString?.toUpperCase(Locale.ROOT) ?: "")
+                    || tickerData.name.toUpperCase(Locale.ROOT).contains(searchString ?: "")
         }
 
     private fun filterFavoriteTickers(searchString: String?) =
         favoriteTickers.value?.filter { tickerData ->
             tickerData.symbol.contains(searchString ?: "")
+                    || tickerData.name.toUpperCase(Locale.ROOT).contains(searchString ?: "")
         }
 
     suspend fun refreshTickersFromAPI(symbols: List<String>) {
         withContext(Dispatchers.IO) {
             Timber.d("refresh tickers is called")
             val market =
-                StockManagerApi.retrofitService.getTickers(token, symbols.joinToString(","))
-            marketDao.insertMarketData(market.asDatabaseModel())
+                StockManagerApi.retrofitService.getEODLatest(token, symbols.joinToString(","))
+            val tickersName = symbols.map { symbol ->
+                StockManagerApi.retrofitService.getTickerName(symbol, token)
+            }.associateBy({ it.symbol }, { it.name })
+
+
+            marketDao.insertMarketData(market.asDatabaseModel(tickersName))
         }
     }
 
@@ -84,8 +91,11 @@ class MarketRepository(private val marketDao: MarketDao) {
     suspend fun updatePopularTickers(tickers: List<TickerPopularity>) {
         withContext(Dispatchers.IO) {
             val symbols = tickers.joinToString(",") { it.symbol }
-            val market = StockManagerApi.retrofitService.getTickers(token, symbols)
-            marketDao.insertMarketData(market.asDatabaseModel())
+            val market = StockManagerApi.retrofitService.getEODLatest(token, symbols)
+            val tickersName = tickers.map { ticker ->
+                StockManagerApi.retrofitService.getTickerName(ticker.symbol, token)
+            }.associateBy({ it.symbol }, { it.name })
+            marketDao.insertMarketData(market.asDatabaseModel(tickersName))
             marketDao.insertPopularity(tickers.map { it.asDatabaseModel() })
         }
     }

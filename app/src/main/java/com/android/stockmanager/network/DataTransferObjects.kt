@@ -2,13 +2,12 @@ package com.android.stockmanager.network
 
 import android.os.Parcelable
 import com.android.stockmanager.database.DatabaseMarket
-import com.android.stockmanager.domain.TickerData
 import com.squareup.moshi.Json
 import kotlinx.parcelize.Parcelize
 
-data class NetworkTickerContainer(
+data class NetworkEODTickerContainer(
     @Json(name = "pagination") val pagination: Pagination,
-    @Json(name = "data") val data: List<NetworkTickerData>
+    @Json(name = "data") val data: List<NetworkEODTickerData>
 )
 
 data class Pagination(
@@ -19,38 +18,29 @@ data class Pagination(
 )
 
 @Parcelize
-data class NetworkTickerData(
+data class NetworkEODTickerData(
     @Json(name = "symbol") val symbol: String,
     @Json(name = "open") val open: Double,
     @Json(name = "close") val close: Double
 ) : Parcelable
 
-//TODO("Add an example of incoming json")
-
-
-/**
- * Convert Network results to domain objects
- */
-fun NetworkTickerContainer.asDomainModel(): List<TickerData> {
-    return data.map {
-        TickerData(
-            symbol = it.symbol,
-            open = it.open,
-            close = it.close
-        )
-    }
-}
+@Parcelize
+data class NetworkCompanyNameData(
+    @Json(name = "symbol") val symbol: String,
+    @Json(name = "name") val name: String
+) : Parcelable
 
 
 /**
  * Convert Network results to database objects
  */
-fun NetworkTickerContainer.asDatabaseModel(): List<DatabaseMarket> {
+fun NetworkEODTickerContainer.asDatabaseModel(tickersName: Map<String, String>): List<DatabaseMarket> {
     return data.map {
         DatabaseMarket(
             symbol = it.symbol,
             open = it.open,
             close = it.close,
+            name = tickersName[it.symbol]!!
         )
     }
 }
