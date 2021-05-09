@@ -4,8 +4,10 @@ import android.content.Context
 import android.os.Bundle
 import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -89,7 +91,7 @@ class OverviewFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val networkConnection = NetworkConnection(requireContext())
-        val snackbar = createSnackbar()
+        val snackbar = createConnectionLostSnackbar()
         networkConnection.observe(viewLifecycleOwner, Observer { isConnected ->
             if (isConnected) {
                 if (snackbar.isShown) snackbar.dismiss()
@@ -103,6 +105,10 @@ class OverviewFragment : Fragment() {
                 viewModel.setFirebaseUser()
             }
         })
+
+        binding.fab.setOnClickListener {
+            showAddTickerDialog(requireContext())
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -112,18 +118,19 @@ class OverviewFragment : Fragment() {
 
         menuItem.queryHint = getString(R.string.search_hint)
 
-        menuItem.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        menuItem.setOnCloseListener {
+            viewModel.setSearchQuery("")
+            true
+        }
 
+        menuItem.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query!!.isNotEmpty()) {
-                    viewModel.increasePopularity(query.split(","))
-                    viewModel.refreshTickersFromAPI(query.split(","))
-                }
                 this@OverviewFragment.view?.hideKeyboard()
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.setSearchQuery(newText ?: "")
                 return true
             }
         })
@@ -131,12 +138,57 @@ class OverviewFragment : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    private fun showAddTickerDialog(context: Context) {
+        val editText = EditText(context).apply { setHint(R.string.search_hint) }
+        val dialog = AlertDialog
+            .Builder(context)
+            .setTitle(getString(R.string.add_new_ticker_dialog_title))
+            .setMessage(getString(R.string.add_new_ticker_dialog_message))
+            .setView(editText)
+            .setPositiveButton(getString(R.string.add_new_ticker_positive_button)) { dialog, which ->
+                val inputText = editText.text
+                val snackbar =
+                    if (Regex("[a-zA-Z,]+", RegexOption.IGNORE_CASE).matches(inputText)) {
+                        viewModel.increasePopularity(inputText.split(","))
+                        viewModel.refreshTickersFromAPI(inputText.split(","))
+                        createInfoSnackbar(getString(R.string.add_new_ticker_snackbar_message))
+                    } else {
+                        createInfoSnackbar(getString(R.string.add_new_ticker_wrong_pattern))
+                    }
+                snackbar.show()
+            }
+            .setNegativeButton(getString(R.string.add_new_ticker_negative_button)) { dialog, _ -> dialog.cancel() }
+            .show()
+        editText.showKeyboard()
+    }
+
     fun View.hideKeyboard() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    private fun createSnackbar(): Snackbar {
+    fun View.showKeyboard() {
+        if (requestFocus()) {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+            // imm.showSoftInputMethod doesn't work well
+            imm?.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+        }
+    }
+
+    private fun createInfoSnackbar(message: String): Snackbar {
+        val snackbar = Snackbar.make(
+            requireView(),
+            message,
+            Snackbar.LENGTH_INDEFINITE
+        )
+        snackbar.anchorView = binding.fab
+        snackbar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).maxLines =
+            4
+        snackbar.setAction(getString(R.string.snackbar_dismiss_button)) { snackbar.dismiss() }
+        return snackbar
+    }
+
+    private fun createConnectionLostSnackbar(): Snackbar {
         val snackbar = Snackbar.make(
             requireView(),
             getString(R.string.offline),

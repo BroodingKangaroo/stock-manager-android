@@ -15,5 +15,12 @@
     <string name="daily_open_price">open</string>
     <string name="daily_close_price">close</string>
     <string name="offline">Connection lost. All the changes you make might not be synchronized.</string>
-    <string name="search">Search...</string>
+    <string name="search">Search…</string>
+    <string name="add_new_ticker_snackbar_message" translatable="false">If the symbol you have entered is supported by the API and it wasn\'t added before, you will see it at the end of the list of popular tickers.</string>
+    <string name="add_new_ticker_wrong_pattern">The symbol you have entered doesn\'t match the pattern.</string>
+    <string name="add_new_ticker_dialog_message">Enter the symbol of the ticker you want to add into the application. You may add several tickers by dividing them with a comma.</string>
+    <string name="add_new_ticker_dialog_title">Add ticker</string>
+    <string name="add_new_ticker_positive_button">Add</string>
+    <string name="add_new_ticker_negative_button">Cancel</string>
+    <string name="snackbar_dismiss_button">DISMISS</string>
 </resources>

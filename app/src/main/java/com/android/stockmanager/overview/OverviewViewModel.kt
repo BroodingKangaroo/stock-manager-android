@@ -19,8 +19,8 @@ class OverviewViewModel(
     val navigateToSelectedTicker: LiveData<TickerData?>
         get() = _navigateToSelectedTicker
 
-    val listValuesOfFavoriteTickers = marketRepository.favoriteTickersData
-    val listValuesOfPopularTickers = marketRepository.popularTickersData
+    val listValuesOfFavoriteTickers = marketRepository.filteredFavoriteTickers
+    val listValuesOfPopularTickers = marketRepository.filteredPopularTickers
 
     private var _eventNetworkError = MutableLiveData<Boolean>(false)
     val eventNetworkError: LiveData<Boolean>
@@ -144,4 +144,7 @@ class OverviewViewModel(
         }
     }
 
+    fun setSearchQuery(searchQuery: String) {
+        marketRepository.searchFieldTextLiveData.value = searchQuery
+    }
 }
